@@ -26,3 +26,8 @@ def test_request_model_fields():
     assert hasattr(model, "rate")
     assert hasattr(model, "voice")
     assert hasattr(model, "lang")
+
+
+def test_separate_route_exists():
+    routes = [r.path for r in api_server.app.routes]
+    assert "/separate" in routes

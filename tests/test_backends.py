@@ -44,3 +44,7 @@ def test_tortoise_backend_available():
 
 def test_edge_tts_backend_available():
     assert "edge_tts" in available_backends()
+
+
+def test_demucs_backend_available():
+    assert "demucs" in available_backends()

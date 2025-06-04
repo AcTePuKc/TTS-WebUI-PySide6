@@ -19,6 +19,12 @@ class SynthesisRequest(BaseModel):
     lang: Optional[str] = None
 
 
+class SeparationRequest(BaseModel):
+    audio: str
+    backend: str = "demucs"
+    model: Optional[str] = None
+
+
 @app.post("/synthesize")
 def synthesize(req: SynthesisRequest):
     if req.backend not in BACKENDS:
@@ -28,6 +34,15 @@ def synthesize(req: SynthesisRequest):
         req.text, output, rate=req.rate, voice=req.voice, lang=req.lang
     )
     return {"output": str(output)}
+
+
+@app.post("/separate")
+def separate(req: SeparationRequest):
+    if req.backend != "demucs":
+        raise HTTPException(status_code=400, detail="Unsupported backend")
+    output_dir = Path("demucs_output")
+    stems = BACKENDS["demucs"](Path(req.audio), output_dir, model_name=req.model or "htdemucs")
+    return {"stems": [str(p) for p in stems]}
 
 
 def run_server(host: str = "0.0.0.0", port: int = 8000):
