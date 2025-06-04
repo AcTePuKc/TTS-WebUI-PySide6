@@ -6,7 +6,12 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
-from ..backend import BACKENDS, available_backends, ensure_backend_installed
+from ..backend import (
+    BACKENDS,
+    available_backends,
+    ensure_backend_installed,
+    is_backend_installed,
+)
 from ..utils.create_base_filename import create_base_filename
 from ..utils.open_folder import open_folder
 
@@ -34,6 +39,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.backend_combo.addItems(available_backends())
         self.backend_combo.currentTextChanged.connect(self.on_backend_changed)
         layout.addWidget(self.backend_combo)
+
+        # Install backend button
+        self.install_button = QtWidgets.QPushButton("Install Backend")
+        self.install_button.clicked.connect(self.on_install_backend)
+        layout.addWidget(self.install_button)
 
         # Voice selector (pyttsx3 only)
         self.voice_combo = QtWidgets.QComboBox()
@@ -64,10 +74,35 @@ class MainWindow(QtWidgets.QMainWindow):
         # API server button
         self.api_button = QtWidgets.QPushButton("Run API Server")
         self.api_button.clicked.connect(self.on_api_server)
-        layout.addWidget(self.api_button)
+        self.update_install_status()
+        if not is_backend_installed(backend):
+            self.status.setText("Backend not installed. Click 'Install Backend' first.")
+            return
 
-        # Open output folder button
-        self.open_button = QtWidgets.QPushButton("Open Output Folder")
+        self.update_install_status()
+        if not is_backend_installed(backend):
+            self.voice_combo.clear()
+            self.voice_combo.setEnabled(False)
+            self.lang_combo.clear()
+            self.lang_combo.setEnabled(False)
+            return
+
+
+    def on_install_backend(self):
+        backend = self.backend_combo.currentText()
+        ensure_backend_installed(backend)
+        self.update_install_status()
+        # reload backend specific options
+        self.on_backend_changed(backend)
+
+    def update_install_status(self):
+        backend = self.backend_combo.currentText()
+        if is_backend_installed(backend):
+            self.install_button.setEnabled(False)
+            self.install_button.setText("Backend Installed")
+        else:
+            self.install_button.setEnabled(True)
+            self.install_button.setText("Install Backend")
         self.open_button.clicked.connect(self.on_open_output)
         layout.addWidget(self.open_button)
 
