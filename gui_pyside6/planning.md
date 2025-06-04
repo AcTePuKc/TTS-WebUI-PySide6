@@ -28,3 +28,5 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Provide a language selector for gTTS so users can choose the output language.
 - Add an "Install Backend" button so users can download optional dependencies
   when selecting a new backend.
+- Ensure backend installation works on Windows by invoking `python -m pip` from
+  the dedicated virtual environment.

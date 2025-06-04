@@ -45,7 +45,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.install_button.clicked.connect(self.on_install_backend)
         layout.addWidget(self.install_button)
 
-
         # Voice selector (pyttsx3 only)
         self.voice_combo = QtWidgets.QComboBox()
         self.voice_combo.setEnabled(False)
@@ -177,6 +176,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.voice_combo.clear()
             self.voice_combo.setEnabled(False)
             if backend == "gtts":
+
 
                 ensure_backend_installed("gtts")
                 try:
