@@ -111,7 +111,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if not is_backend_installed(backend):
             self.status.setText("Backend not installed. Click 'Install Backend' first.")
             return
-
         output = self._generate_output_path(text, backend)
         rate = self.rate_spin.value()
         voice_id = self.voice_combo.currentData()
@@ -119,7 +118,6 @@ class MainWindow(QtWidgets.QMainWindow):
         BACKENDS[backend](
             text, output, rate=rate, voice=voice_id, lang=lang_code
         )
-
         self.last_output = output
         self.status.setText(f"Saved to {output}")
         self.play_button.setEnabled(True)
@@ -157,7 +155,6 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         if backend == "pyttsx3":
-
             try:
                 import pyttsx3
                 engine = pyttsx3.init()
@@ -176,9 +173,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.voice_combo.clear()
             self.voice_combo.setEnabled(False)
             if backend == "gtts":
-
-
-                ensure_backend_installed("gtts")
                 try:
                     from gtts import lang
                     languages = lang.tts_langs()
@@ -191,7 +185,6 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.lang_combo.clear()
                 self.lang_combo.setEnabled(False)
-
 
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
