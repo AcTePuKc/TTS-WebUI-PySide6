@@ -32,7 +32,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # Backend dropdown
         self.backend_combo = QtWidgets.QComboBox()
         self.backend_combo.addItems(available_backends())
+        self.backend_combo.currentTextChanged.connect(self.on_backend_changed)
         layout.addWidget(self.backend_combo)
+
+        # Voice selector (pyttsx3 only)
+        self.voice_combo = QtWidgets.QComboBox()
+        self.voice_combo.setEnabled(False)
+        layout.addWidget(self.voice_combo)
 
         # Speech rate selector
         rate_row = QtWidgets.QHBoxLayout()
@@ -72,19 +78,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
 
-        self.api_process = None
-        self.last_output: Path | None = None
-
-        self.audio_output = QAudioOutput()
-        self.player = QMediaPlayer()
-        self.player.setAudioOutput(self.audio_output)
-
-        self.api_process = None
-        self.last_output: Path | None = None
-
         # Status label
         self.status = QtWidgets.QLabel()
         layout.addWidget(self.status)
+
+        # Load voices for initial backend
+        self.on_backend_changed(self.backend_combo.currentText())
 
     def on_synthesize(self):
         text = self.text_edit.toPlainText().strip()
@@ -95,7 +94,8 @@ class MainWindow(QtWidgets.QMainWindow):
         ensure_backend_installed(backend)
         output = self._generate_output_path(text, backend)
         rate = self.rate_spin.value()
-        BACKENDS[backend](text, output, rate=rate)
+        voice_id = self.voice_combo.currentData()
+        BACKENDS[backend](text, output, rate=rate, voice=voice_id)
         self.last_output = output
         self.status.setText(f"Saved to {output}")
         self.play_button.setEnabled(True)
@@ -122,6 +122,25 @@ class MainWindow(QtWidgets.QMainWindow):
             self.player.play()
         else:
             self.status.setText("No output file to play")
+
+    def on_backend_changed(self, backend: str):
+        if backend == "pyttsx3":
+            ensure_backend_installed("pyttsx3")
+            try:
+                import pyttsx3
+                engine = pyttsx3.init()
+                voices = engine.getProperty("voices")
+            except Exception:
+                voices = []
+            self.voice_combo.clear()
+            self.voice_combo.addItem("(default)", None)
+            for v in voices:
+                name = getattr(v, "name", v.id)
+                self.voice_combo.addItem(name, v.id)
+            self.voice_combo.setEnabled(True)
+        else:
+            self.voice_combo.clear()
+            self.voice_combo.setEnabled(False)
 
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

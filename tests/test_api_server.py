@@ -15,3 +15,9 @@ from gui_pyside6.backend import api_server
 def test_synthesize_route_exists():
     routes = [r.path for r in api_server.app.routes]
     assert "/synthesize" in routes
+
+
+def test_request_model_fields():
+    model = api_server.SynthesisRequest(text="hi")
+    assert hasattr(model, "rate")
+    assert hasattr(model, "voice")
