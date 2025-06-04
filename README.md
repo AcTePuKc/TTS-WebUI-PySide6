@@ -480,4 +480,6 @@ This repository includes a lightweight PySide6 launcher for offline TTS.
    optionally installs PyTorch, and launches the GUI.
 4. To start the GUI manually, run `python -m gui_pyside6.main` from the repository
    root so the `gui_pyside6` package can be resolved correctly.
+5. Optional TTS backends such as `pyttsx3` or `gTTS` are installed on demand.
+   Select a backend and click the **Install Backend** button if prompted.
 

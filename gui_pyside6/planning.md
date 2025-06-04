@@ -29,4 +29,5 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Add an "Install Backend" button so users can download optional dependencies
   when selecting a new backend.
 - Ensure backend installation works on Windows by invoking `python -m pip` from
+- Import backend modules lazily so missing packages don't break startup.
   the dedicated virtual environment.

@@ -1,16 +1,22 @@
 from __future__ import annotations
 
-import importlib.util
+import functools
+import importlib
 import json
 from pathlib import Path
 
 from ..utils.install_utils import install_package_in_venv
-from .pyttsx_backend import synthesize_to_file
-from .gtts_backend import synthesize_to_file as gtts_synthesize
+
+
+def _call_backend(module: str, *args, **kwargs):
+    """Import the given backend module on demand and run it."""
+    mod = importlib.import_module(f".{module}", __name__)
+    return mod.synthesize_to_file(*args, **kwargs)
+
 
 BACKENDS = {
-    "pyttsx3": synthesize_to_file,
-    "gtts": gtts_synthesize,
+    "pyttsx3": functools.partial(_call_backend, "pyttsx_backend"),
+    "gtts": functools.partial(_call_backend, "gtts_backend"),
 }
 
 
