@@ -72,6 +72,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
 
+        self.api_process = None
+        self.last_output: Path | None = None
+
+        self.audio_output = QAudioOutput()
+        self.player = QMediaPlayer()
+        self.player.setAudioOutput(self.audio_output)
+
+        self.api_process = None
+        self.last_output: Path | None = None
+
         # Status label
         self.status = QtWidgets.QLabel()
         layout.addWidget(self.status)
