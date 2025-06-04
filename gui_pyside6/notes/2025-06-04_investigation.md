@@ -31,3 +31,12 @@
 - Consider truncating or warning about very long text inputs to avoid accidentally passing extremely long strings to backends.
 
 These adjustments should eliminate the runtime `TypeError` issues and improve the overall user experience.
+
+## Follow-up 2025-06-04
+
+Implemented dynamic parameter handling in `MainWindow.on_synthesize` so that only
+supported keywords are passed to each backend. The synthesize button is now
+automatically disabled when no text is entered, the selected backend is not
+installed, or synthesis is currently running. Console messages indicate when
+synthesis starts and finishes. Further improvements such as a dedicated stop
+button are still pending.
