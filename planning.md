@@ -10,3 +10,4 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Added backend requirements mapping and automatic installation of missing packages when a backend is used.
 - Include `requirements.uv.toml` for UV-based installs and an `install_torch.py` script for selecting the correct PyTorch build.
 - Added a lightweight `Dockerfile.server` to run the FastAPI server as a container.
+- Created `run_pyside.sh` and `run_pyside.bat` to launch the new GUI.
