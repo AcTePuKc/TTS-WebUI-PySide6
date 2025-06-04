@@ -8,6 +8,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 dummy = types.ModuleType("pyttsx3")
 dummy.init = lambda: None
 sys.modules.setdefault("pyttsx3", dummy)
+# Provide a dummy gtts module for the gtts backend
+gtts_dummy = types.ModuleType("gtts")
+gtts_dummy.gTTS = lambda *a, **k: None
+sys.modules.setdefault("gtts", gtts_dummy)
 
 from gui_pyside6.backend import api_server
 
