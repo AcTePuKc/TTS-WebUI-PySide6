@@ -10,7 +10,7 @@ REQUIREMENTS_LOCK_FILE="requirements.lock.txt"
 
 # --- CONFIG ---
 VENV_DIR=".venv"
-SCRIPT_NAME="gui_pyside6/main.py"
+SCRIPT_NAME="main.py"
 WINDOW_TITLE="PySide6 TTS Launcher"
 
 # Handle dry-run mode
@@ -69,7 +69,7 @@ uv pip sync "$REQUIREMENTS_LOCK_FILE" || { echo "Dependency installation failed!
 # Conditional PyTorch install
 if [ "$UV_APP_DRY" = "0" ]; then
     echo "Installing PyTorch..."
-    python gui_pyside6/install_torch.py || echo "WARNING: PyTorch install failed. App may lack GPU support."
+    python install_torch.py || echo "WARNING: PyTorch install failed. App may lack GPU support."
 else
     echo "[Dry Run] Skipped PyTorch installation"
 fi
