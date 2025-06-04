@@ -18,6 +18,17 @@ def _venv_python() -> Path:
     exe = "python.exe" if os.name == "nt" else "python"
     return VENV_DIR / folder / exe
 
+
+def _is_venv_active() -> bool:
+    """Return True if running inside any kind of virtual environment."""
+    if sys.prefix != sys.base_prefix:
+        return True
+    if os.environ.get("VIRTUAL_ENV"):
+        return True
+    if os.environ.get("CONDA_PREFIX"):
+        return True
+    return False
+
 def install_package_in_venv(package: str | Iterable[str]):
     """Install packages into the current venv if active, else into hybrid_tts venv."""
     if isinstance(package, str):
@@ -26,7 +37,7 @@ def install_package_in_venv(package: str | Iterable[str]):
     # Always run ensurepip first so that tests can verify its invocation
     subprocess.run([sys.executable, "-m", "ensurepip", "--upgrade"], check=True)
 
-    in_venv = sys.prefix != sys.base_prefix
+    in_venv = _is_venv_active()
 
     if in_venv:
         print(f"[INFO] Active venv detected → installing into current venv: {sys.prefix}")
