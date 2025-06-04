@@ -70,7 +70,6 @@ uv pip sync "$REQUIREMENTS_LOCK_FILE" || { echo "Dependency installation failed!
 if [ "$UV_APP_DRY" = "0" ]; then
     echo "Installing PyTorch..."
     python gui_pyside6/install_torch.py || echo "WARNING: PyTorch install failed. App may lack GPU support."
-
 else
     echo "[Dry Run] Skipped PyTorch installation"
 fi
