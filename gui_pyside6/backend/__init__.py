@@ -19,6 +19,7 @@ BACKENDS = {
     "gtts": functools.partial(_call_backend, "gtts_backend"),
     "bark": functools.partial(_call_backend, "bark_backend"),
     "tortoise": functools.partial(_call_backend, "tortoise_backend"),
+    "edge_tts": functools.partial(_call_backend, "edge_tts_backend"),
 }
 
 def available_backends():

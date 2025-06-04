@@ -23,6 +23,9 @@ bark_generation.preload_models = lambda: None
 bark_dummy.generation = bark_generation
 sys.modules.setdefault("bark", bark_dummy)
 sys.modules.setdefault("bark.generation", bark_generation)
+edge_dummy = types.ModuleType("edge_tts")
+edge_dummy.Communicate = lambda *a, **k: type("C", (), {"save": lambda self, p: None})()
+sys.modules.setdefault("edge_tts", edge_dummy)
 
 from gui_pyside6.backend import available_backends
 
@@ -37,3 +40,7 @@ def test_bark_backend_available():
 
 def test_tortoise_backend_available():
     assert "tortoise" in available_backends()
+
+
+def test_edge_tts_backend_available():
+    assert "edge_tts" in available_backends()
