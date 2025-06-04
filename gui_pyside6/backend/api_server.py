@@ -16,6 +16,7 @@ class SynthesisRequest(BaseModel):
     backend: str = "pyttsx3"
     rate: Optional[int] = None
     voice: Optional[str] = None
+    lang: Optional[str] = None
 
 
 @app.post("/synthesize")
@@ -23,7 +24,9 @@ def synthesize(req: SynthesisRequest):
     if req.backend not in BACKENDS:
         raise HTTPException(status_code=400, detail="Unknown backend")
     output = Path("output_api.wav")
-    BACKENDS[req.backend](req.text, output, rate=req.rate, voice=req.voice)
+    BACKENDS[req.backend](
+        req.text, output, rate=req.rate, voice=req.voice, lang=req.lang
+    )
     return {"output": str(output)}
 
 

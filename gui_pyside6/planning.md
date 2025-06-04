@@ -25,3 +25,4 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Add a voice selector dropdown for pyttsx3 so users can pick from installed
   voices. Extend the API server to accept `voice` and `rate` parameters.
 - Introduce a gTTS backend for simple online synthesis with MP3 output.
+- Provide a language selector for gTTS so users can choose the output language.

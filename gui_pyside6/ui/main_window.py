@@ -40,6 +40,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.voice_combo.setEnabled(False)
         layout.addWidget(self.voice_combo)
 
+        # Language selector (gTTS only)
+        self.lang_combo = QtWidgets.QComboBox()
+        self.lang_combo.setEnabled(False)
+        layout.addWidget(self.lang_combo)
+
+
         # Speech rate selector
         rate_row = QtWidgets.QHBoxLayout()
         rate_label = QtWidgets.QLabel("Speech Rate:")
@@ -95,7 +101,11 @@ class MainWindow(QtWidgets.QMainWindow):
         output = self._generate_output_path(text, backend)
         rate = self.rate_spin.value()
         voice_id = self.voice_combo.currentData()
-        BACKENDS[backend](text, output, rate=rate, voice=voice_id)
+        lang_code = self.lang_combo.currentData()
+        BACKENDS[backend](
+            text, output, rate=rate, voice=voice_id, lang=lang_code
+        )
+
         self.last_output = output
         self.status.setText(f"Saved to {output}")
         self.play_button.setEnabled(True)
@@ -138,9 +148,26 @@ class MainWindow(QtWidgets.QMainWindow):
                 name = getattr(v, "name", v.id)
                 self.voice_combo.addItem(name, v.id)
             self.voice_combo.setEnabled(True)
+            self.lang_combo.clear()
+            self.lang_combo.setEnabled(False)
         else:
             self.voice_combo.clear()
             self.voice_combo.setEnabled(False)
+            if backend == "gtts":
+                ensure_backend_installed("gtts")
+                try:
+                    from gtts import lang
+                    languages = lang.tts_langs()
+                except Exception:
+                    languages = {"en": "English"}
+                self.lang_combo.clear()
+                for code, name in languages.items():
+                    self.lang_combo.addItem(f"{name} ({code})", code)
+                self.lang_combo.setEnabled(True)
+            else:
+                self.lang_combo.clear()
+                self.lang_combo.setEnabled(False)
+
 
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

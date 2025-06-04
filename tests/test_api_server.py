@@ -25,3 +25,5 @@ def test_request_model_fields():
     model = api_server.SynthesisRequest(text="hi")
     assert hasattr(model, "rate")
     assert hasattr(model, "voice")
+    assert hasattr(model, "lang")
+
