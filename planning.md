@@ -12,3 +12,7 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Added a lightweight `Dockerfile.server` to run the FastAPI server as a container.
 - Created `run_pyside.sh` and `run_pyside.bat` to launch the new GUI.
 - Added dedicated `requirements.in` and `requirements.lock.txt` for the PySide6 GUI.
+- Pruned extension packages from requirements and documented PySide6 launcher in README.
+ - **Core requirements remain minimal.** `requirements.uv.toml` lists only the base
+   dependencies (PySide6, FastAPI, PyTorch, etc.). Optional TTS extensions are
+   specified in `backend_requirements.json` and installed on demand at runtime.
