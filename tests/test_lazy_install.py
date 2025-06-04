@@ -8,6 +8,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 dummy = type(sys)("pyttsx3")
 dummy.init = lambda: None
 sys.modules.setdefault("pyttsx3", dummy)
+# Provide a dummy gtts module so backend import works
+gtts_dummy = type(sys)("gtts")
+gtts_dummy.gTTS = lambda *a, **k: None
+sys.modules.setdefault("gtts", gtts_dummy)
 
 from gui_pyside6.backend import ensure_backend_installed
 

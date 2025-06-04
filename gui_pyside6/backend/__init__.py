@@ -6,9 +6,11 @@ from pathlib import Path
 
 from ..utils.install_utils import install_package_in_venv
 from .pyttsx_backend import synthesize_to_file
+from .gtts_backend import synthesize_to_file as gtts_synthesize
 
 BACKENDS = {
     "pyttsx3": synthesize_to_file,
+    "gtts": gtts_synthesize,
 }
 
 
