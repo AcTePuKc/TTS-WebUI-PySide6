@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import functools
 import importlib
+import importlib.util
 import json
 from pathlib import Path
 
 from ..utils.install_utils import install_package_in_venv
 
-
 def _call_backend(module: str, *args, **kwargs):
     """Import the given backend module on demand and run it."""
     mod = importlib.import_module(f".{module}", __name__)
     return mod.synthesize_to_file(*args, **kwargs)
+
 BACKENDS = {
     "pyttsx3": functools.partial(_call_backend, "pyttsx_backend"),
     "gtts": functools.partial(_call_backend, "gtts_backend"),
