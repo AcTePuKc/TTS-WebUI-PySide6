@@ -45,6 +45,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lang_combo.setEnabled(False)
         layout.addWidget(self.lang_combo)
 
+
         # Speech rate selector
         rate_row = QtWidgets.QHBoxLayout()
         rate_label = QtWidgets.QLabel("Speech Rate:")
@@ -104,6 +105,7 @@ class MainWindow(QtWidgets.QMainWindow):
         BACKENDS[backend](
             text, output, rate=rate, voice=voice_id, lang=lang_code
         )
+
         self.last_output = output
         self.status.setText(f"Saved to {output}")
         self.play_button.setEnabled(True)
@@ -166,8 +168,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.lang_combo.clear()
                 self.lang_combo.setEnabled(False)
 
+
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         base = create_base_filename(text[:15], str(OUTPUT_DIR), backend, date)
         ext = ".mp3" if backend == "gtts" else ".wav"
         return Path(base + ext)
+

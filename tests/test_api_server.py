@@ -26,3 +26,4 @@ def test_request_model_fields():
     assert hasattr(model, "rate")
     assert hasattr(model, "voice")
     assert hasattr(model, "lang")
+
