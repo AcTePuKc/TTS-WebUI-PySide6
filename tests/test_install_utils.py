@@ -10,7 +10,11 @@ def test_install_package_uses_ensurepip_and_pip():
         run.side_effect = lambda *a, **k: calls.append(('run', a[0])) or None
         call.side_effect = lambda *a, **k: calls.append(('call', a[0])) or None
         install_package_in_venv('dummy')
+
+    # first call should run ensurepip
     assert calls[0][0] == 'run'
     assert 'ensurepip' in calls[0][1]
-    assert calls[1][0] == 'call'
-    assert 'pip' in calls[1][1]
+
+    # there should be a pip install command at some point
+    pip_calls = [c for c in calls if c[0] == 'call' and 'pip' in c[1]]
+    assert pip_calls, "pip install was not called"

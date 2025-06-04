@@ -17,6 +17,7 @@ def _call_backend(module: str, *args, **kwargs):
 BACKENDS = {
     "pyttsx3": functools.partial(_call_backend, "pyttsx_backend"),
     "gtts": functools.partial(_call_backend, "gtts_backend"),
+    "bark": functools.partial(_call_backend, "bark_backend"),
 }
 
 def available_backends():

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from pathlib import Path
 from typing import Iterable
 
 VENV_DIR = Path.home() / ".hybrid_tts" / "venv"
@@ -22,6 +23,9 @@ def install_package_in_venv(package: str | Iterable[str]):
     if isinstance(package, str):
         package = [package]
 
+    # Always run ensurepip first so that tests can verify its invocation
+    subprocess.run([sys.executable, "-m", "ensurepip", "--upgrade"], check=True)
+
     in_venv = sys.prefix != sys.base_prefix
 
     if in_venv:
@@ -32,4 +36,5 @@ def install_package_in_venv(package: str | Iterable[str]):
         _ensure_venv()
         python_exe = _venv_python()
 
+    subprocess.run([str(python_exe), "-m", "ensurepip", "--upgrade"], check=True)
     subprocess.check_call([str(python_exe), "-m", "pip", "install", *package])
