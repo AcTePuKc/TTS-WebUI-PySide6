@@ -101,6 +101,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.on_backend_changed(self.backend_combo.currentText())
         self.update_install_status()
 
+
     def on_synthesize(self):
         text = self.text_edit.toPlainText().strip()
         if not text:
@@ -206,3 +207,4 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.install_button.setEnabled(True)
             self.install_button.setText("Install Backend")
+
