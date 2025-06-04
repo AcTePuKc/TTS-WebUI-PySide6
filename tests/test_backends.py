@@ -64,6 +64,10 @@ def test_mms_backend_available():
     assert "mms" in available_backends()
 
 
+def test_vocos_backend_available():
+    assert "vocos" in available_backends()
+
+
 def test_get_mms_languages_returns_list():
     langs = get_mms_languages()
     assert isinstance(langs, list)

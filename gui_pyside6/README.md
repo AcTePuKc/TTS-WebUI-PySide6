@@ -35,6 +35,7 @@ Backend packages are defined in `backend/backend_requirements.json`. Installatio
 - Adjustable speech rate.
 - "Play Last Output" and "Open Output Folder" buttons.
 - Optional FastAPI server for programmatic synthesis.
+- Experimental audio reconstruction with **Vocos**.
 
 ## Running Tests
 
