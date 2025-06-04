@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import importlib
+import importlib.util
 import json
 from pathlib import Path
 

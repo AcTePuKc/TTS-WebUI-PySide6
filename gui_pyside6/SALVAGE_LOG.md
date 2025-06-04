@@ -40,4 +40,6 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
   executable so optional backends are installed into the active environment
   whether a virtualenv is used or not.
 - Changed the backend registry to import backend modules lazily so optional
+- Fixed missing `pip` errors on Windows by bootstrapping with `ensurepip` before
+  installing packages and imported `importlib.util` explicitly in the backend.
   packages like `pyttsx3` are only required when their backend is selected.

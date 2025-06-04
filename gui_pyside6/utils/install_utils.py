@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+    # Ensure pip is available before attempting installation
+    subprocess.run([sys.executable, "-m", "ensurepip", "--upgrade"], check=False)
 import os
 import subprocess
 import sys

@@ -30,4 +30,7 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
   when selecting a new backend.
 - Install optional backends using the Python executable that launched the GUI so
   packages are added to the active environment regardless of whether a
+- Ensure pip is available when installing optional backends by invoking
+  `python -m ensurepip` before `pip install`. Also fix backend import errors by
+  explicitly importing `importlib.util`.
   virtualenv is used.
