@@ -1,47 +1,44 @@
-tts_webui_core @ https://github.com/rsxdalv/tts_webui_core/releases/download/v0.0.1/tts_webui_core-0.0.1-py3-none-any.whl
+# Base dependencies mirroring the original TTS WebUI project
+# These are used to compile requirements.lock.txt for the run scripts.
 
+# Core libraries
 safetensors
 python-dotenv==1.0.0
- 
-ffmpeg-python # Apache 2.0
-gradio==5.5.0 # MIT License
-pydantic==2.10.6 # for gradio 5.5.0 fix
-pillow==10.3.0 # for gradio, conda fix
-# beartype>=0.16.1 # workaround for a bug
-soundfile==0.12.1; sys_platform == 'win32' # torchaudio
-# Deepspeed needs to be compiled with DS_BUILD_OPS otherwise pip only install of PyTorch without NVCC will fail.
-# deepspeed==0.16.5; sys_platform == 'win32' # Apache 2.0
+ffmpeg-python  # Apache 2.0
+pillow==10.3.0  # for gradio, conda fix
+pydantic==2.10.6  # for gradio 5.5.0 fix
 
-# https://github.com/rsxdalv/xformers/releases/download/v0.0.30/xformers-0.0.30+cbc9beb.d20250514-cp310-cp310-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.10' # BSD 3-Clause License
-# https://github.com/rsxdalv/xformers/releases/download/v0.0.30/xformers-0.0.30+cbc9beb.d20250514-cp311-cp311-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.11' # BSD 3-Clause License
-# xformers==0.0.30; sys_platform == 'darwin' # Apache 2.0
+tts_webui_core @ https://github.com/rsxdalv/tts_webui_core/releases/download/v0.0.1/tts_webui_core-0.0.1-py3-none-any.whl
 
-fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp310-cp310-win_amd64.whl ; sys_platform == 'win32' and python_version == '3.10' # MIT License
-fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl ; sys_platform == 'linux' and python_version == '3.10' # MIT License
-fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp310-cp310-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.10' # MIT License
+gradio==5.5.0  # MIT License
+soundfile==0.12.1; sys_platform == 'win32'  # torchaudio
 
-fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp311-cp311-win_amd64.whl ; sys_platform == 'win32' and python_version == '3.11' # MIT License
-fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl ; sys_platform == 'linux' and python_version == '3.11' # MIT License
-fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp311-cp311-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.11' # MIT License
-
-fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp312-cp312-win_amd64.whl ; sys_platform == 'win32' and python_version == '3.12' # MIT License
-fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl ; sys_platform == 'linux' and python_version == '3.12' # MIT License
-fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp312-cp312-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.12' # MIT License
-
+# Optional acceleration libs
 accelerate>=0.33.0
-# optimum-quanto==0.2.6
 
-# experimental 
-# triton>=3.2.0 ; sys_platform == 'linux',
-# triton-windows>=3.2.0.post18 ; sys_platform == 'win32', # has issues with certain libraries
+# Platform wheels
+# https://github.com/rsxdalv/xformers/releases/download/v0.0.30/xformers-0.0.30cbc9beb.d20250514-cp310-cp310-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.10'
+# https://github.com/rsxdalv/xformers/releases/download/v0.0.30/xformers-0.0.30cbc9beb.d20250514-cp311-cp311-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.11'
+# xformers==0.0.30; sys_platform == 'darwin'
 
+fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp310-cp310-win_amd64.whl ; sys_platform == 'win32' and python_version == '3.10'
+fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl ; sys_platform == 'linux' and python_version == '3.10'
+fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp310-cp310-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.10'
+fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp311-cp311-win_amd64.whl ; sys_platform == 'win32' and python_version == '3.11'
+fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl ; sys_platform == 'linux' and python_version == '3.11'
+fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp311-cp311-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.11'
+fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp312-cp312-win_amd64.whl ; sys_platform == 'win32' and python_version == '3.12'
+fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl ; sys_platform == 'linux' and python_version == '3.12'
+fairseq @ https://github.com/rsxdalv/fairseq/releases/download/v0.12.3/fairseq-0.12.13-cp312-cp312-macosx_11_0_universal2.whl ; sys_platform == 'darwin' and python_version == '3.12'
+
+# Experimental/optional GPU builds
+# triton>=3.2.0 ; sys_platform == 'linux'
+# triton-windows>=3.2.0.post18 ; sys_platform == 'win32'
 # flash-attn @ https://github.com/kingbri1/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu124torch2.6.0cxx11abiFALSE-cp310-cp310-win_amd64.whl ; sys_platform == 'win32'
 # flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl ; sys_platform == 'linux'
 
 
-# Optional TTS Extensions (lazy install later)
-
-extension_bark @ git+https://github.com/rsxdalv/extension_bark@main
+deprecated>=1.2.13
 extension_tortoise @ git+https://github.com/rsxdalv/extension_tortoise@main
 extension_demucs @ git+https://github.com/rsxdalv/extension_demucs@main
 extension_mms @ git+https://github.com/rsxdalv/extension_mms@main
