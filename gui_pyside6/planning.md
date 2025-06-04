@@ -19,3 +19,5 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Implemented an "Open Output Folder" button in the main window that opens the
   directory of the last synthesized file and uses the existing `open_folder`
   utility.
+- Add a "Play Last Output" button that uses QtMultimedia to play the most
+  recent WAV file directly in the application.

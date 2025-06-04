@@ -23,3 +23,5 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
 - Added standalone `requirements.in` and `requirements.lock.txt` so the GUI is independent of WebUI requirements.
 - Added an `Open Output Folder` button in the PySide6 UI to open the directory of
   the most recent synthesis result.
+- Added a `Play Last Output` button using QtMultimedia so users can listen to
+  the generated audio without leaving the app.

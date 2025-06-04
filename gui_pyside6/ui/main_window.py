@@ -3,6 +3,8 @@ import subprocess
 import sys
 from datetime import datetime
 from PySide6 import QtWidgets
+from PySide6.QtCore import QUrl
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from ..backend import BACKENDS, available_backends, ensure_backend_installed
 from ..utils.create_base_filename import create_base_filename
@@ -47,6 +49,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.open_button.clicked.connect(self.on_open_output)
         layout.addWidget(self.open_button)
 
+        # Play output button
+        self.play_button = QtWidgets.QPushButton("Play Last Output")
+        self.play_button.clicked.connect(self.on_play_output)
+        self.play_button.setEnabled(False)
+        layout.addWidget(self.play_button)
+
+        self.api_process = None
+        self.last_output: Path | None = None
+
+        self.audio_output = QAudioOutput()
+        self.player = QMediaPlayer()
+        self.player.setAudioOutput(self.audio_output)
+
         self.api_process = None
         self.last_output: Path | None = None
 
@@ -65,6 +80,7 @@ class MainWindow(QtWidgets.QMainWindow):
         BACKENDS[backend](text, output)
         self.last_output = output
         self.status.setText(f"Saved to {output}")
+        self.play_button.setEnabled(True)
 
     def on_api_server(self):
         if self.api_process is None:
@@ -81,6 +97,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def on_open_output(self):
         folder = self.last_output.parent if self.last_output else OUTPUT_DIR
         open_folder(str(folder))
+
+    def on_play_output(self):
+        if self.last_output and self.last_output.exists():
+            self.player.setSource(QUrl.fromLocalFile(str(self.last_output)))
+            self.player.play()
+        else:
+            self.status.setText("No output file to play")
 
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
