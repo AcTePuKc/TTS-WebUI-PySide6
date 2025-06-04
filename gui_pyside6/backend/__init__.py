@@ -21,6 +21,7 @@ BACKENDS = {
     "tortoise": functools.partial(_call_backend, "tortoise_backend", "synthesize_to_file"),
     "edge_tts": functools.partial(_call_backend, "edge_tts_backend", "synthesize_to_file"),
     "demucs": functools.partial(_call_backend, "demucs_backend", "separate_audio"),
+    "mms": functools.partial(_call_backend, "mms_backend", "synthesize_to_file"),
 }
 
 def available_backends():
@@ -43,6 +44,15 @@ def get_gtts_languages():
         return lang.tts_langs()
     except Exception:
         return {"en": "English"}
+
+
+def get_mms_languages() -> list[tuple[str, str]]:
+    """Return list of available MMS languages."""
+    try:
+        from .mms_backend import get_mms_languages as _get
+        return _get()
+    except Exception:
+        return [("English", "eng")]
 
 def missing_backend_packages(name: str) -> list[str]:
     return [pkg for pkg in _get_backend_packages(name) if importlib.util.find_spec(pkg) is None]
