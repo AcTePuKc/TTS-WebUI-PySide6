@@ -27,7 +27,7 @@ edge_dummy = types.ModuleType("edge_tts")
 edge_dummy.Communicate = lambda *a, **k: type("C", (), {"save": lambda self, p: None})()
 sys.modules.setdefault("edge_tts", edge_dummy)
 
-from gui_pyside6.backend import available_backends
+from gui_pyside6.backend import available_backends, get_mms_languages
 
 
 def test_gtts_backend_available():
@@ -48,3 +48,14 @@ def test_edge_tts_backend_available():
 
 def test_demucs_backend_available():
     assert "demucs" in available_backends()
+
+
+def test_mms_backend_available():
+    assert "mms" in available_backends()
+
+
+def test_get_mms_languages_returns_list():
+    langs = get_mms_languages()
+    assert isinstance(langs, list)
+    assert langs, "Language list should not be empty"
+    assert isinstance(langs[0], tuple) and len(langs[0]) == 2
