@@ -15,8 +15,8 @@ All Hybrid app code, scripts and dependencies stay inside `/gui_pyside6/`. Do no
 1. Install **Python 3.11** and the [`uv`](https://github.com/astral-sh/uv) package.
 2. Run `run_pyside.sh` (Linux/macOS) or `run_pyside.bat` (Windows) from this directory.
    The script creates a virtual environment, installs `requirements.uv.toml`,
-   optionally installs PyTorch, and launches the GUI.
-3. You can also start the GUI manually with:
+   optionally installs PyTorch, and launches the GUI from the repository root.
+3. You can also start the GUI manually (from the repository root) with:
 
    ```bash
    python -m gui_pyside6.main
@@ -36,6 +36,15 @@ Backend packages are defined in `backend/backend_requirements.json`. Installatio
 - "Play Last Output" and "Open Output Folder" buttons.
 - Optional FastAPI server for programmatic synthesis.
 - Experimental audio reconstruction with **Vocos**.
+
+## Troubleshooting
+
+- On Windows, the **pyttsx3** backend may fail with `ModuleNotFoundError: No module named 'pywintypes'`.
+  Reinstalling `pywin32` inside the virtual environment usually resolves the issue:
+
+  ```bash
+  pip install --force-reinstall pywin32
+  ```
 
 ## Running Tests
 

@@ -2,8 +2,10 @@
 setlocal enabledelayedexpansion
 
 :: --- CONFIG ---
-set VENV_DIR=.venv
-set SCRIPT_NAME=main.py
+set SCRIPT_DIR=%~dp0
+set VENV_DIR=%SCRIPT_DIR%\.venv
+set SCRIPT_MODULE=gui_pyside6.main
+cd /d "%SCRIPT_DIR%"
 set WINDOW_TITLE=PySide6 TTS Launcher
 set REQUIREMENTS_INPUT_FILE=requirements.in
 set REQUIREMENTS_LOCK_FILE=requirements.lock.txt
@@ -85,4 +87,6 @@ if "%UV_APP_DRY%"=="0" (
     echo [Dry Run] Skipped PyTorch installation
 )
 
-start "%WINDOW_TITLE%" cmd /k ""%VENV_DIR%\Scripts\python.exe" "%SCRIPT_NAME%""
+pushd ..
+start "%WINDOW_TITLE%" cmd /k ""%VENV_DIR%\Scripts\python.exe" -m %SCRIPT_MODULE%"
+popd
