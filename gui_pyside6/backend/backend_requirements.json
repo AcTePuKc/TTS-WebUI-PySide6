@@ -1,0 +1,4 @@
+{
+  "pyttsx3": ["pyttsx3"],
+  "api_server": ["fastapi", "uvicorn"]
+}
