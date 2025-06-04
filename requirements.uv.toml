@@ -1,0 +1,7 @@
+[project]
+dependencies = [
+  "PySide6",
+  "pyttsx3",
+  "fastapi",
+  "uvicorn[standard]"
+]
