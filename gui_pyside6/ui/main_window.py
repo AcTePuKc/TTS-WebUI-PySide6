@@ -1,9 +1,14 @@
 from pathlib import Path
 import subprocess
 import sys
+from datetime import datetime
 from PySide6 import QtWidgets
 
 from ..backend import BACKENDS, available_backends, ensure_backend_installed
+from ..utils.create_base_filename import create_base_filename
+from ..utils.open_folder import open_folder
+
+OUTPUT_DIR = Path("outputs")
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -37,7 +42,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.api_button.clicked.connect(self.on_api_server)
         layout.addWidget(self.api_button)
 
+        # Open output folder button
+        self.open_button = QtWidgets.QPushButton("Open Output Folder")
+        self.open_button.clicked.connect(self.on_open_output)
+        layout.addWidget(self.open_button)
+
         self.api_process = None
+        self.last_output: Path | None = None
 
         # Status label
         self.status = QtWidgets.QLabel()
@@ -50,8 +61,9 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         backend = self.backend_combo.currentText()
         ensure_backend_installed(backend)
-        output = Path("output.wav")
+        output = self._generate_output_path(text, backend)
         BACKENDS[backend](text, output)
+        self.last_output = output
         self.status.setText(f"Saved to {output}")
 
     def on_api_server(self):
@@ -65,3 +77,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.status.setText("API server started at http://127.0.0.1:8000")
         else:
             self.status.setText("API server already running")
+
+    def on_open_output(self):
+        folder = self.last_output.parent if self.last_output else OUTPUT_DIR
+        open_folder(str(folder))
+
+    def _generate_output_path(self, text: str, backend: str) -> Path:
+        date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        base = create_base_filename(text[:15], str(OUTPUT_DIR), backend, date)
+        return Path(base + ".wav")
