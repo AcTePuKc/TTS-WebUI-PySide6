@@ -22,6 +22,7 @@ BACKENDS = {
     "edge_tts": functools.partial(_call_backend, "edge_tts_backend", "synthesize_to_file"),
     "demucs": functools.partial(_call_backend, "demucs_backend", "separate_audio"),
     "mms": functools.partial(_call_backend, "mms_backend", "synthesize_to_file"),
+    "vocos": functools.partial(_call_backend, "vocos_backend", "reconstruct_audio"),
 }
 
 def get_edge_voices(locale: str | None = None) -> list[str]:
