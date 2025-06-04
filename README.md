@@ -470,3 +470,12 @@ Most notably:
 - MusicGen: CC BY-NC 4.0
 - AudioGen: CC BY-NC 4.0
 
+## PySide6 GUI Quick Start
+
+This repository includes a lightweight PySide6 launcher for offline TTS.
+
+1. Install **Python 3.11** and the [`uv`](https://github.com/astral-sh/uv) package.
+2. Run `run_pyside.sh` (Linux/macOS) or `run_pyside.bat` (Windows).
+3. The script creates a virtual environment, installs dependencies from `requirements.lock.txt`,
+   optionally installs PyTorch, and launches the GUI.
+

@@ -4,7 +4,6 @@ import importlib.util
 import json
 from pathlib import Path
 
-from .pyttsx_backend import synthesize_to_file
 from ..utils.install_utils import install_package_in_venv
 from .pyttsx_backend import synthesize_to_file
 
