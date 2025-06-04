@@ -34,6 +34,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.backend_combo.addItems(available_backends())
         layout.addWidget(self.backend_combo)
 
+        # Speech rate selector
+        rate_row = QtWidgets.QHBoxLayout()
+        rate_label = QtWidgets.QLabel("Speech Rate:")
+        self.rate_spin = QtWidgets.QSpinBox()
+        self.rate_spin.setRange(50, 300)
+        self.rate_spin.setValue(200)
+        rate_row.addWidget(rate_label)
+        rate_row.addWidget(self.rate_spin)
+        layout.addLayout(rate_row)
+
         # Synthesize button
         self.button = QtWidgets.QPushButton("Synthesize")
         self.button.clicked.connect(self.on_synthesize)
@@ -62,7 +72,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
 
-        self.api_process = None
+        rate = self.rate_spin.value()
+        BACKENDS[backend](text, output, rate=rate)
         self.last_output: Path | None = None
 
         # Status label

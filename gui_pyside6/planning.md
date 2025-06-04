@@ -21,3 +21,4 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
   utility.
 - Add a "Play Last Output" button that uses QtMultimedia to play the most
   recent WAV file directly in the application.
+- Provide a speech rate selector so users can control the pyttsx3 output speed.

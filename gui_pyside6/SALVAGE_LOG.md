@@ -24,4 +24,6 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
 - Added an `Open Output Folder` button in the PySide6 UI to open the directory of
   the most recent synthesis result.
 - Added a `Play Last Output` button using QtMultimedia so users can listen to
+- Implemented a speech rate selector in the PySide6 UI and added an optional
+  `rate` parameter to the `pyttsx_backend` so users can control synthesis speed.
   the generated audio without leaving the app.
