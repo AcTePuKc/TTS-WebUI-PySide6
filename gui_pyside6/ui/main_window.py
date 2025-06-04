@@ -5,6 +5,7 @@ from datetime import datetime
 from PySide6 import QtWidgets
 from PySide6.QtCore import QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+import inspect
 
 from ..backend import (
     BACKENDS,
@@ -34,12 +35,14 @@ class MainWindow(QtWidgets.QMainWindow):
         # Text input
         self.text_edit = QtWidgets.QPlainTextEdit()
         self.text_edit.setPlaceholderText("Enter text to synthesize...")
+        self.text_edit.textChanged.connect(self.update_synthesize_enabled)
         layout.addWidget(self.text_edit)
 
         # Backend dropdown
         self.backend_combo = QtWidgets.QComboBox()
         self.backend_combo.addItems(available_backends())
         self.backend_combo.currentTextChanged.connect(self.on_backend_changed)
+        self.backend_combo.currentTextChanged.connect(self.update_synthesize_enabled)
         layout.addWidget(self.backend_combo)
 
         # Install backend button
@@ -90,6 +93,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.api_process = None
         self.last_output: Path | None = None
+        self._synth_busy = False
 
         self.audio_output = QAudioOutput()
         self.player = QMediaPlayer()
@@ -102,26 +106,51 @@ class MainWindow(QtWidgets.QMainWindow):
         # Load voices for initial backend
         self.on_backend_changed(self.backend_combo.currentText())
         self.update_install_status()
+        self.update_synthesize_enabled()
 
     def on_synthesize(self):
         text = self.text_edit.toPlainText().strip()
         if not text:
             self.status.setText("Please enter some text")
+            self.update_synthesize_enabled()
             return
+
         backend = self.backend_combo.currentText()
         if not is_backend_installed(backend):
             self.status.setText("Backend not installed. Click 'Install Backend' first.")
+            self.update_synthesize_enabled()
             return
+
+        self._synth_busy = True
+        self.update_synthesize_enabled()
         output = self._generate_output_path(text, backend)
         rate = self.rate_spin.value()
         voice_id = self.voice_combo.currentData()
         lang_code = self.lang_combo.currentData()
-        BACKENDS[backend](
-            text, output, rate=rate, voice=voice_id, lang=lang_code
-        )
+
+        func = BACKENDS[backend]
+        sig = inspect.signature(func)
+        kwargs = {}
+        if "rate" in sig.parameters:
+            if backend == "edge_tts":
+                delta = rate - 200
+                kwargs["rate"] = f"{delta:+d}%"
+            else:
+                kwargs["rate"] = rate
+        if "voice" in sig.parameters and voice_id:
+            kwargs["voice"] = voice_id
+        if "lang" in sig.parameters and lang_code:
+            kwargs["lang"] = lang_code
+
+        print(f"[INFO] Synthesizing with {backend}...")
+        func(text, output, **kwargs)
+        print(f"[INFO] Output saved to {output}")
+
         self.last_output = output
         self.status.setText(f"Saved to {output}")
         self.play_button.setEnabled(True)
+        self._synth_busy = False
+        self.update_synthesize_enabled()
 
     def on_api_server(self):
         if self.api_process is None:
@@ -190,6 +219,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 else:
                     self.lang_combo.clear()
                     self.lang_combo.setEnabled(False)
+            self.update_synthesize_enabled()
 
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -203,6 +233,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_install_status()
         # reload backend specific options
         self.on_backend_changed(backend)
+        self.update_synthesize_enabled()
 
     def update_install_status(self):
         backend = self.backend_combo.currentText()
@@ -212,3 +243,10 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.install_button.setEnabled(True)
             self.install_button.setText("Install Backend")
+        self.update_synthesize_enabled()
+
+    def update_synthesize_enabled(self):
+        text_present = bool(self.text_edit.toPlainText().strip())
+        backend_ready = is_backend_installed(self.backend_combo.currentText())
+        busy = getattr(self, "_synth_busy", False)
+        self.button.setEnabled(text_present and backend_ready and not busy)
