@@ -29,6 +29,7 @@ Backend packages are defined in `backend/backend_requirements.json`. Installatio
 ## Features
 
 - Lazy installation of backends such as **pyttsx3** and **gTTS**.
+- Experimental support for **Tortoise TTS** voice cloning.
 - Voice and language selectors (when supported by the backend).
 - Adjustable speech rate.
 - "Play Last Output" and "Open Output Folder" buttons.
