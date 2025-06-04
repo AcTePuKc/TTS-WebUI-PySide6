@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 :: --- CONFIG ---
 set VENV_DIR=.venv
-set SCRIPT_NAME=gui_pyside6\main.py
+set SCRIPT_NAME=main.py
 set WINDOW_TITLE=PySide6 TTS Launcher
 set REQUIREMENTS_INPUT_FILE=requirements.in
 set REQUIREMENTS_LOCK_FILE=requirements.lock.txt
@@ -78,7 +78,7 @@ uv pip sync "%REQUIREMENTS_LOCK_FILE%" || (
 :: Conditional PyTorch install
 if "%UV_APP_DRY%"=="0" (
     echo Installing PyTorch...
-    python gui_pyside6\install_torch.py || (
+    python install_torch.py || (
         echo WARNING: PyTorch install failed. App may lack GPU support.
     )
 ) else (
