@@ -1,7 +1,14 @@
 {
-  "pyttsx3": ["pyttsx3"],
-  "gtts": ["gTTS"],
-  "api_server": ["fastapi", "uvicorn"],
+  "pyttsx3": [
+    "pyttsx3"
+  ],
+  "gtts": [
+    "gTTS"
+  ],
+  "api_server": [
+    "fastapi",
+    "uvicorn"
+  ],
   "bark": [
     "extension_bark @ git+https://github.com/rsxdalv/extension_bark@main"
   ],
@@ -25,5 +32,8 @@
   ],
   "kokoro": [
     "extension_kokoro_tts_api @ git+https://github.com/rsxdalv/extension_kokoro_tts_api@main"
+  ],
+  "whisper": [
+    "extension_whisper @ git+https://github.com/rsxdalv/extension_whisper@main"
   ]
 }

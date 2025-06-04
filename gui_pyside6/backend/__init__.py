@@ -24,6 +24,13 @@ BACKENDS = {
     "mms": functools.partial(_call_backend, "mms_backend", "synthesize_to_file"),
 }
 
+TRANSCRIBERS = {
+    "whisper": functools.partial(_call_backend, "whisper_backend", "transcribe_to_text"),
+}
+
+def available_transcribers():
+    return list(TRANSCRIBERS.keys())
+
 def available_backends():
     return list(BACKENDS.keys())
 
