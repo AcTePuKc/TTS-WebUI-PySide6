@@ -33,3 +33,7 @@ def test_gtts_backend_available():
 
 def test_bark_backend_available():
     assert "bark" in available_backends()
+
+
+def test_tortoise_backend_available():
+    assert "tortoise" in available_backends()
