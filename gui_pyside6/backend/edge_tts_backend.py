@@ -25,3 +25,18 @@ def synthesize_to_file(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     asyncio.run(_synthesize_async(text, output_path, voice=voice, rate=rate, pitch=pitch))
     return output_path
+
+
+async def _list_voices_async(locale: str | None = None) -> list[str]:
+    """Return available Edge TTS voice names."""
+    from edge_tts import list_voices
+
+    voices = await list_voices()
+    if locale:
+        voices = [v for v in voices if v.get("Locale", "").startswith(locale)]
+    return [v["ShortName"] for v in voices]
+
+
+def list_voices(locale: str | None = None) -> list[str]:
+    """Return available Edge TTS voices synchronously."""
+    return asyncio.run(_list_voices_async(locale))

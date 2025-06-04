@@ -11,7 +11,8 @@ from ..backend import (
     available_backends,
     ensure_backend_installed,
     is_backend_installed,
-    get_gtts_languages
+    get_gtts_languages,
+    get_edge_voices,
 )
 from ..utils.create_base_filename import create_base_filename
 from ..utils.open_folder import open_folder
@@ -178,6 +179,14 @@ class MainWindow(QtWidgets.QMainWindow):
                     for code, name in languages.items():
                         self.lang_combo.addItem(f"{name} ({code})", code)
                     self.lang_combo.setEnabled(True)
+                elif backend == "edge_tts":
+                    voices = get_edge_voices()
+                    self.voice_combo.clear()
+                    for v in voices:
+                        self.voice_combo.addItem(v, v)
+                    self.voice_combo.setEnabled(True)
+                    self.lang_combo.clear()
+                    self.lang_combo.setEnabled(False)
                 else:
                     self.lang_combo.clear()
                     self.lang_combo.setEnabled(False)

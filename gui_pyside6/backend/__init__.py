@@ -24,6 +24,13 @@ BACKENDS = {
     "mms": functools.partial(_call_backend, "mms_backend", "synthesize_to_file"),
 }
 
+def get_edge_voices(locale: str | None = None) -> list[str]:
+    """Return list of available Edge TTS voices."""
+    try:
+        return _call_backend("edge_tts_backend", "list_voices", locale=locale)
+    except Exception:
+        return []
+
 TRANSCRIBERS = {
     "whisper": functools.partial(_call_backend, "whisper_backend", "transcribe_to_text"),
 }
