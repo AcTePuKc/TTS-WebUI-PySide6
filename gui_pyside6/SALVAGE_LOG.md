@@ -29,4 +29,6 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
   `rate` parameter to the `pyttsx_backend` so users can control synthesis speed.
 - Added a voice selector dropdown that lists available pyttsx3 voices. The
   selected voice is passed through to the backend and the API server now accepts
+- Added a basic gTTS backend with lazy installation. MP3 files are generated
+  when this backend is selected.
   optional `rate` and `voice` parameters.

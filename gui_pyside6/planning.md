@@ -23,4 +23,5 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
   recent WAV file directly in the application.
 - Provide a speech rate selector so users can control the pyttsx3 output speed.
 - Add a voice selector dropdown for pyttsx3 so users can pick from installed
+- Introduce a gTTS backend for simple online synthesis with MP3 output.
   voices. Extend the API server to accept `voice` and `rate` parameters.

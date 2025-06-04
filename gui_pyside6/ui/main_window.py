@@ -145,4 +145,5 @@ class MainWindow(QtWidgets.QMainWindow):
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         base = create_base_filename(text[:15], str(OUTPUT_DIR), backend, date)
-        return Path(base + ".wav")
+        ext = ".mp3" if backend == "gtts" else ".wav"
+        return Path(base + ext)
