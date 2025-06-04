@@ -35,4 +35,6 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
 - Extended gTTS backend to support a language parameter and added a language
   selector in the GUI that becomes active when gTTS is chosen.
 - Added an "Install Backend" button that checks for missing packages and
+- Fixed `install_utils` to use the correct venv Python on Windows so optional
+  backends install properly across platforms.
   installs them on demand.

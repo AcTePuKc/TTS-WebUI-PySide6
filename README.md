@@ -478,4 +478,6 @@ This repository includes a lightweight PySide6 launcher for offline TTS.
 2. Run `run_pyside.sh` (Linux/macOS) or `run_pyside.bat` (Windows).
 3. The script creates a virtual environment, installs dependencies from `requirements.lock.txt`,
    optionally installs PyTorch, and launches the GUI.
+4. To start the GUI manually, run `python -m gui_pyside6.main` from the repository
+   root so the `gui_pyside6` package can be resolved correctly.
 

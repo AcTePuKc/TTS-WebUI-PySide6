@@ -27,4 +27,6 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Introduce a gTTS backend for simple online synthesis with MP3 output.
 - Provide a language selector for gTTS so users can choose the output language.
 - Add an "Install Backend" button so users can download optional dependencies
+- Ensure backend installation works on Windows by invoking `python -m pip` from
+  the dedicated virtual environment.
   when selecting a new backend.
