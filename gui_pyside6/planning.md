@@ -13,6 +13,20 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Created `run_pyside.sh` and `run_pyside.bat` to launch the new GUI.
 - Added dedicated `requirements.in` and `requirements.lock.txt` for the PySide6 GUI.
 - Pruned extension packages from requirements and documented PySide6 launcher in README.
- - **Core requirements remain minimal.** `requirements.uv.toml` lists only the base
+- **Core requirements remain minimal.** `requirements.uv.toml` lists only the base
    dependencies (PySide6, FastAPI, PyTorch, etc.). Optional TTS extensions are
    specified in `backend_requirements.json` and installed on demand at runtime.
+- Implemented an "Open Output Folder" button in the main window that opens the
+  directory of the last synthesized file and uses the existing `open_folder`
+  utility.
+- Add a "Play Last Output" button that uses QtMultimedia to play the most
+  recent WAV file directly in the application.
+- Provide a speech rate selector so users can control the pyttsx3 output speed.
+- Add a voice selector dropdown for pyttsx3 so users can pick from installed
+  voices. Extend the API server to accept `voice` and `rate` parameters.
+- Introduce a gTTS backend for simple online synthesis with MP3 output.
+- Provide a language selector for gTTS so users can choose the output language.
+- Add an "Install Backend" button so users can download optional dependencies
+  when selecting a new backend.
+- Ensure backend installation works on Windows by invoking `python -m pip` from
+  the dedicated virtual environment.
