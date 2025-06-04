@@ -17,4 +17,3 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
 - Added `backend_requirements.json` and `ensure_backend_installed` helper.
 - Added `run_pyside.sh` and `run_pyside.bat` installer scripts for launching the GUI.
 - Added standalone `requirements.in` and `requirements.lock.txt` so the GUI is independent of WebUI requirements.
-- Pruned unused `extension_*` packages from `requirements.in` and regenerated the lock file.

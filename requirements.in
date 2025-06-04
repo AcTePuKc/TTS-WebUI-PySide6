@@ -38,12 +38,26 @@ accelerate>=0.33.0
 # flash-attn @ https://github.com/kingbri1/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu124torch2.6.0cxx11abiFALSE-cp310-cp310-win_amd64.whl ; sys_platform == 'win32'
 # flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl ; sys_platform == 'linux'
 
+# Optional TTS Extensions (lazy install later)
 
+extension_bark @ git+https://github.com/rsxdalv/extension_bark@main
+extension_tortoise @ git+https://github.com/rsxdalv/extension_tortoise@main
+extension_demucs @ git+https://github.com/rsxdalv/extension_demucs@main
+extension_mms @ git+https://github.com/rsxdalv/extension_mms@main
+extension_seamless_m4t @ git+https://github.com/rsxdalv/extension_seamless_m4t@main
+extension_vocos @ git+https://github.com/rsxdalv/extension_vocos@main
+extension_kokoro_tts_api @ git+https://github.com/rsxdalv/extension_kokoro_tts_api@main
+
+# Base deps
 
 matplotlib
+
+# Gradio plugins (optional if WebUI used)
 
 gradio_goodtabs @ https://github.com/rsxdalv/gradio_goodtabs/releases/download/v0.0.3/gradio_goodtabs-0.0.3-py3-none-any.whl
 gradio_goodtab @ https://github.com/rsxdalv/gradio_goodtab/releases/download/v0.0.3/gradio_goodtab-0.0.3-py3-none-any.whl
 gradio_iconbutton @ https://github.com/rsxdalv/gradio_iconbutton/releases/download/v0.0.1/gradio_iconbutton-0.0.1-py3-none-any.whl
+
+# Other
 
 deprecated >= 1.2.13
