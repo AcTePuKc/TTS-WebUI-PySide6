@@ -9,8 +9,10 @@ REQUIREMENTS_LOCK_FILE="requirements.lock.txt"
 
 
 # --- CONFIG ---
-VENV_DIR=".venv"
-SCRIPT_NAME="main.py"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VENV_DIR="$SCRIPT_DIR/.venv"
+SCRIPT_MODULE="gui_pyside6.main"
+cd "$SCRIPT_DIR"
 WINDOW_TITLE="PySide6 TTS Launcher"
 
 # Handle dry-run mode
@@ -76,4 +78,6 @@ fi
 
 # Launch app
 echo "Starting application..."
-python "$SCRIPT_NAME"
+pushd "$SCRIPT_DIR/.." >/dev/null
+"$VENV_DIR/bin/python" -m "$SCRIPT_MODULE"
+popd >/dev/null
