@@ -38,3 +38,4 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
   installs them on demand.
 - Fixed `install_utils` to use the correct venv Python on Windows so optional
   backends install properly across platforms.
+
