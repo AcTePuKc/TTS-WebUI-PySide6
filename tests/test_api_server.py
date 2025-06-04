@@ -31,3 +31,14 @@ def test_request_model_fields():
 def test_separate_route_exists():
     routes = [r.path for r in api_server.app.routes]
     assert "/separate" in routes
+
+
+def test_transcribe_route_exists():
+    routes = [r.path for r in api_server.app.routes]
+    assert "/transcribe" in routes
+
+
+def test_transcription_request_fields():
+    model = api_server.TranscriptionRequest(audio="audio.wav")
+    assert hasattr(model, "backend")
+    assert hasattr(model, "model")

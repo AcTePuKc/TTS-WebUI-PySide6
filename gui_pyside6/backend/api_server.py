@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from . import BACKENDS
+from . import BACKENDS, TRANSCRIBERS
 
 app = FastAPI(title="Hybrid TTS API")
 
@@ -22,6 +22,12 @@ class SynthesisRequest(BaseModel):
 class SeparationRequest(BaseModel):
     audio: str
     backend: str = "demucs"
+    model: Optional[str] = None
+
+
+class TranscriptionRequest(BaseModel):
+    audio: str
+    backend: str = "whisper"
     model: Optional[str] = None
 
 
@@ -43,6 +49,14 @@ def separate(req: SeparationRequest):
     output_dir = Path("demucs_output")
     stems = BACKENDS["demucs"](Path(req.audio), output_dir, model_name=req.model or "htdemucs")
     return {"stems": [str(p) for p in stems]}
+
+
+@app.post("/transcribe")
+def transcribe(req: TranscriptionRequest):
+    if req.backend not in TRANSCRIBERS:
+        raise HTTPException(status_code=400, detail="Unsupported backend")
+    text = TRANSCRIBERS[req.backend](Path(req.audio), model_name=req.model or "openai/whisper-large-v3")
+    return {"text": text}
 
 
 def run_server(host: str = "0.0.0.0", port: int = 8000):
