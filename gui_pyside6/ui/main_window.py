@@ -5,6 +5,10 @@ from PySide6 import QtWidgets
 
 from ..backend import BACKENDS, available_backends, ensure_backend_installed
 
+from PySide6 import QtWidgets
+
+from ..backend import BACKENDS, available_backends
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):

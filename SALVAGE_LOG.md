@@ -14,3 +14,4 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
 - Added `requirements.uv.toml` listing minimal dependencies for the new GUI.
 - Created `install_torch.py` helper to install PyTorch with optional CUDA.
 - Added `Dockerfile.server` for running the FastAPI server.
+- Added `backend_requirements.json` and `ensure_backend_installed` helper.
