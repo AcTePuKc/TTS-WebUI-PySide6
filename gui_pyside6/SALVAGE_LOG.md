@@ -21,3 +21,12 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
 - Added standalone `requirements.in` and `requirements.lock.txt` so the GUI is independent of WebUI requirements.
 - Pruned unused `extension_*` packages from `requirements.in` and regenerated the lock file.
 - Added standalone `requirements.in` and `requirements.lock.txt` so the GUI is independent of WebUI requirements.
+- Added an `Open Output Folder` button in the PySide6 UI to open the directory of
+  the most recent synthesis result.
+- Added a `Play Last Output` button using QtMultimedia so users can listen to
+  the generated audio without leaving the app.
+- Implemented a speech rate selector in the PySide6 UI and added an optional
+  `rate` parameter to the `pyttsx_backend` so users can control synthesis speed.
+- Added a voice selector dropdown that lists available pyttsx3 voices. The
+  selected voice is passed through to the backend and the API server now accepts
+  optional `rate` and `voice` parameters.
