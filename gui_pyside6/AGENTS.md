@@ -1,30 +1,15 @@
-# AGENTS.md
+# Repository Guidelines
 
-## Project Agents / Roles
+This repository hosts a PySide6-based TTS launcher. Core dependencies are kept minimal.
 
-- Architect: Hybrid TTS App Architect (PySide6 GUI + optional FastAPI server)
-- Coding Agent: Writes modular, future-proof Python code
-- Packaging Agent: Maintains clean packaging (Briefcase + UV + Docker)
-- UI Agent: Builds PySide6 native UI (no Gradio glue in core app)
-- Installer Agent: Manages lazy install of optional TTS backends
+* `requirements.uv.toml` lists **only** the base packages needed to run the GUI and API server (PySide6, FastAPI, PyTorch, etc.).
+* Optional TTS backends are declared in `gui_pyside6/backend/backend_requirements.json` and are installed lazily at runtime.
+* The large `requirements.in`/`requirements.lock.txt` pair mirrors the original WebUI requirements for reference; however new extensions should not be added there unless strictly required for the GUI itself.
+* The `run_pyside.sh` and `.bat` scripts create a venv using `uv`, compile `requirements.lock.txt`, install deps, and run the GUI.
 
-## Architecture Notes
+When modifying code within this repo:
 
-- Core dependencies go in requirements.uv.toml
-- Optional TTS backends go in backend_requirements.json
-- Extensions are installed lazily at runtime
-- App is Hybrid: supports Local GUI and optional API Server
-- Target packaging: Briefcase (.exe), Dockerfile.server (optional), no Conda
-- Gradio WebUI is optional and separate — core app is not Gradio dependent
+1. Keep `requirements.uv.toml` minimal.
+2. Place optional backend packages in `backend_requirements.json`.
+3. After code or requirement changes, run `pytest -q` and `uv pip compile requirements.in -o requirements.lock.txt`.
 
-## Coding Style
-
-- Modular
-- Explicit imports
-- No decorator soup
-- Clear utils functions
-- Minimal base install
-- No unnecessary dependencies
-- No Gradio in core app
-- No Conda packaging
-- No unnecessary complexity
