@@ -1,6 +1,9 @@
 from pathlib import Path
 import subprocess
 import sys
+from PySide6 import QtWidgets
+
+from ..backend import BACKENDS, available_backends, ensure_backend_installed
 
 from PySide6 import QtWidgets
 
@@ -50,12 +53,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self.status.setText("Please enter some text")
             return
         backend = self.backend_combo.currentText()
+        ensure_backend_installed(backend)
         output = Path("output.wav")
         BACKENDS[backend](text, output)
         self.status.setText(f"Saved to {output}")
 
     def on_api_server(self):
         if self.api_process is None:
+            ensure_backend_installed("api_server")
             self.api_process = subprocess.Popen(
                 [sys.executable, "-m", "gui_pyside6.backend.api_server"]
             )

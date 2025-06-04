@@ -7,3 +7,4 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Implement minimal PySide6 GUI with a synthesize button and TTS backend dropdown.
 - Add lazy installation utilities for optional backends.
 - Provide a FastAPI server with a /synthesize endpoint that can be launched from the GUI.
+- Added backend requirements mapping and automatic installation of missing packages when a backend is used.
