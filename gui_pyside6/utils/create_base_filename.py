@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Optional
 
 
@@ -21,4 +22,12 @@ def create_base_filename(
 
 
 def replace_path_sep(title: Optional[str]) -> str:
-    return "None" if title is None else title.replace(os.path.sep, "_")
+    """Return a filename-friendly snippet for the given title."""
+    if title is None:
+        return "None"
+
+    sanitized = title.strip().replace(os.path.sep, "_")
+    # Allow only common filename characters
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", sanitized)
+
+    return sanitized or "None"
