@@ -53,6 +53,21 @@ def _get_backend_packages(name: str) -> list[str]:
     return reqs.get(name, [])
 
 
+def _get_module_name(package_spec: str) -> str:
+    """Return the importable module name for the given requirement spec."""
+    try:
+        from packaging.requirements import Requirement
+
+        req = Requirement(package_spec)
+        name = req.name
+    except Exception:
+        # Fallback to a simple split if packaging is not available or parsing fails
+        name = package_spec.split("@")[0].strip().split()[0]
+
+    # Normalize to a valid module name (pip packages may use dashes or casing)
+    return name.replace("-", "_").lower()
+
+
 def get_gtts_languages():
     try:
         from gtts import lang
@@ -70,7 +85,12 @@ def get_mms_languages() -> list[tuple[str, str]]:
         return [("English", "eng")]
 
 def missing_backend_packages(name: str) -> list[str]:
-    return [pkg for pkg in _get_backend_packages(name) if importlib.util.find_spec(pkg) is None]
+    missing = []
+    for pkg in _get_backend_packages(name):
+        module_name = _get_module_name(pkg)
+        if importlib.util.find_spec(module_name) is None:
+            missing.append(pkg)
+    return missing
 
 def is_backend_installed(name: str) -> bool:
     return not missing_backend_packages(name)
