@@ -11,6 +11,7 @@ from ..backend import (
     available_backends,
     ensure_backend_installed,
     is_backend_installed,
+    get_gtts_languages
 )
 from ..utils.create_base_filename import create_base_filename
 from ..utils.open_folder import open_folder
@@ -172,11 +173,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.voice_combo.clear()
             self.voice_combo.setEnabled(False)
             if backend == "gtts":
-                try:
-                    from gtts import lang
-                    languages = lang.tts_langs()
-                except Exception:
-                    languages = {"en": "English"}
+                languages = get_gtts_languages()
                 self.lang_combo.clear()
                 for code, name in languages.items():
                     self.lang_combo.addItem(f"{name} ({code})", code)
@@ -184,6 +181,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.lang_combo.clear()
                 self.lang_combo.setEnabled(False)
+
 
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

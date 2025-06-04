@@ -35,14 +35,11 @@ def _get_backend_packages(name: str) -> list[str]:
         reqs: dict[str, list[str]] = json.load(f)
     return reqs.get(name, [])
 
-
 def missing_backend_packages(name: str) -> list[str]:
     return [pkg for pkg in _get_backend_packages(name) if importlib.util.find_spec(pkg) is None]
 
-
 def is_backend_installed(name: str) -> bool:
     return not missing_backend_packages(name)
-
 
 def ensure_backend_installed(name: str) -> None:
     """Install packages required for the given backend if missing."""

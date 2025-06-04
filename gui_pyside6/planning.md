@@ -31,4 +31,3 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Install optional backends using the Python executable that launched the GUI so
   packages are added to the active environment regardless of whether a
   virtualenv is used.
-- Import backend modules lazily so missing packages don't break startup.
