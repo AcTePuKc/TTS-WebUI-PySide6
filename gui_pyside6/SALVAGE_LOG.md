@@ -32,3 +32,5 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
   optional `rate` and `voice` parameters.
 - Added a basic gTTS backend with lazy installation. MP3 files are generated
   when this backend is selected.
+- Extended gTTS backend to support a language parameter and added a language
+  selector in the GUI that becomes active when gTTS is chosen.
