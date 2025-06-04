@@ -8,18 +8,19 @@ from pathlib import Path
 
 from ..utils.install_utils import install_package_in_venv
 
-def _call_backend(module: str, *args, **kwargs):
-    """Import the given backend module on demand and run it."""
+def _call_backend(module: str, func: str, *args, **kwargs):
+    """Import the given backend module on demand and run the requested function."""
     mod = importlib.import_module(f".{module}", __name__)
-    return mod.synthesize_to_file(*args, **kwargs)
+    return getattr(mod, func)(*args, **kwargs)
 
 
 BACKENDS = {
-    "pyttsx3": functools.partial(_call_backend, "pyttsx_backend"),
-    "gtts": functools.partial(_call_backend, "gtts_backend"),
-    "bark": functools.partial(_call_backend, "bark_backend"),
-    "tortoise": functools.partial(_call_backend, "tortoise_backend"),
-    "edge_tts": functools.partial(_call_backend, "edge_tts_backend"),
+    "pyttsx3": functools.partial(_call_backend, "pyttsx_backend", "synthesize_to_file"),
+    "gtts": functools.partial(_call_backend, "gtts_backend", "synthesize_to_file"),
+    "bark": functools.partial(_call_backend, "bark_backend", "synthesize_to_file"),
+    "tortoise": functools.partial(_call_backend, "tortoise_backend", "synthesize_to_file"),
+    "edge_tts": functools.partial(_call_backend, "edge_tts_backend", "synthesize_to_file"),
+    "demucs": functools.partial(_call_backend, "demucs_backend", "separate_audio"),
 }
 
 def available_backends():
