@@ -7,6 +7,9 @@ from pathlib import Path
 async def _synthesize_async(text: str, output_path: Path, *, voice: str, rate: str, pitch: str | None) -> Path:
     from edge_tts import Communicate
 
+    if not pitch:
+        pitch = "+0Hz"
+
     communicate = Communicate(text=text, voice=voice, rate=rate, pitch=pitch)
     await communicate.save(str(output_path))
     return output_path
@@ -18,7 +21,7 @@ def synthesize_to_file(
     *,
     voice: str = "en-US-GuyNeural",
     rate: str = "+0%",
-    pitch: str | None = None,
+    pitch: str | None = "+0Hz",
 ) -> Path:
     """Synthesize speech using Microsoft Edge TTS service."""
     output_path = Path(output_path)

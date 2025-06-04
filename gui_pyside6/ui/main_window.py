@@ -143,14 +143,19 @@ class MainWindow(QtWidgets.QMainWindow):
             kwargs["lang"] = lang_code
 
         print(f"[INFO] Synthesizing with {backend}...")
-        func(text, output, **kwargs)
-        print(f"[INFO] Output saved to {output}")
-
-        self.last_output = output
-        self.status.setText(f"Saved to {output}")
-        self.play_button.setEnabled(True)
-        self._synth_busy = False
-        self.update_synthesize_enabled()
+        try:
+            func(text, output, **kwargs)
+        except Exception as e:
+            self.status.setText(f"Error: {e}")
+            print(f"[ERROR] {e}")
+        else:
+            print(f"[INFO] Output saved to {output}")
+            self.last_output = output
+            self.status.setText(f"Saved to {output}")
+            self.play_button.setEnabled(True)
+        finally:
+            self._synth_busy = False
+            self.update_synthesize_enabled()
 
     def on_api_server(self):
         if self.api_process is None:
