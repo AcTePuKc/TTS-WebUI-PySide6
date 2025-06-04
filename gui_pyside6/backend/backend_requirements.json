@@ -8,6 +8,9 @@
   "tortoise": [
     "extension_tortoise @ git+https://github.com/rsxdalv/extension_tortoise@main"
   ],
+  "edge_tts": [
+    "edge-tts"
+  ],
   "demucs": [
     "extension_demucs @ git+https://github.com/rsxdalv/extension_demucs@main"
   ],
