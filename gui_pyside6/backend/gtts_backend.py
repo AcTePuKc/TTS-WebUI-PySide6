@@ -10,7 +10,6 @@ def synthesize_to_file(
     voice: str | None = None,
     lang: str = "en",
 ) -> Path:
-
     """Synthesize speech using gTTS and save to an MP3 file."""
     tts = gTTS(text=text, lang=lang)
     output_path = Path(output_path)

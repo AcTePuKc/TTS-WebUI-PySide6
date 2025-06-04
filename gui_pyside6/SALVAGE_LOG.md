@@ -36,8 +36,8 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
   selector in the GUI that becomes active when gTTS is chosen.
 - Added an "Install Backend" button that checks for missing packages and
   installs them on demand.
-- Fixed `install_utils` to use the correct venv Python on Windows so optional
-  backends install properly across platforms.
+- Updated `install_utils` to install packages using the running Python
+  executable so optional backends are installed into the active environment
+  whether a virtualenv is used or not.
 - Changed the backend registry to import backend modules lazily so optional
   packages like `pyttsx3` are only required when their backend is selected.
-
