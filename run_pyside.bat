@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 :: --- CONFIG ---
 set VENV_DIR=.venv
 set SCRIPT_NAME=gui_pyside6\main.py
-set WINDOW_TITLE=Chatterbox TTS One Click Installer
+set WINDOW_TITLE=PySide6 TTS Launcher
 set REQUIREMENTS_INPUT_FILE=requirements.in
 set REQUIREMENTS_LOCK_FILE=requirements.lock.txt
 
@@ -14,7 +14,7 @@ echo Dry Run Mode: %UV_APP_DRY%
 :: --- Core Setup ---
 :START
 echo.
-echo === Starting Chatterbox TTS Installer ===
+echo === Starting PySide6 TTS Launcher ===
 echo.
 where python >nul
 if %ERRORLEVEL% neq 0 (
@@ -78,7 +78,7 @@ uv pip sync "%REQUIREMENTS_LOCK_FILE%" || (
 :: Conditional PyTorch install
 if "%UV_APP_DRY%"=="0" (
     echo Installing PyTorch...
-    python install_torch.py || (
+    python gui_pyside6\install_torch.py || (
         echo WARNING: PyTorch install failed. App may lack GPU support.
     )
 ) else (
