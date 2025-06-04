@@ -16,6 +16,10 @@ This repository hosts THREE separate apps / UIs:
 * Optional TTS backends declared in `gui_pyside6/backend/backend_requirements.json`, installed lazily.
 * The Hybrid app has its own `run_pyside6.sh` and `run_pyside6.bat` inside `/gui_pyside6/`.
 * `Dockerfile.server` belongs to `/gui_pyside6/`.
+* Lazy backend installation MUST first detect if an active Python venv is in use.
+    * If an active venv is detected (sys.prefix != sys.base_prefix), install backends into the active venv.
+    * If no venv is active, install backends into a dedicated per-user venv at `~/.hybrid_tts/venv` (Windows: `C:\Users\USERNAME\.hybrid_tts\venv`).
+* The `ensure_backend_installed()` helper MUST implement this logic to support both dev mode and packaged app mode.
 
 **IMPORTANT:**  
 When adding new features to the Hybrid app:  
