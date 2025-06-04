@@ -5,15 +5,11 @@ from PySide6 import QtWidgets
 
 from ..backend import BACKENDS, available_backends, ensure_backend_installed
 
-from PySide6 import QtWidgets
-
-from ..backend import BACKENDS, available_backends
-
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Hybrid TTS")
+        self.setWindowTitle("PySide6 TTS Launcher")
         self.resize(400, 200)
 
         central = QtWidgets.QWidget()
