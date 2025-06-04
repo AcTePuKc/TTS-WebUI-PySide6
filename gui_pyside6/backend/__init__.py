@@ -4,7 +4,6 @@ import importlib.util
 import json
 from pathlib import Path
 
-from .pyttsx_backend import synthesize_to_file
 from ..utils.install_utils import install_package_in_venv
 from .pyttsx_backend import synthesize_to_file
 
@@ -34,5 +33,4 @@ def ensure_backend_installed(name: str) -> None:
 
     missing = [pkg for pkg in packages if importlib.util.find_spec(pkg) is None]
     if missing:
-        install_package_in_venv(missing)
         install_package_in_venv(missing)
