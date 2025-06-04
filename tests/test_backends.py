@@ -25,6 +25,9 @@ sys.modules.setdefault("bark", bark_dummy)
 sys.modules.setdefault("bark.generation", bark_generation)
 edge_dummy = types.ModuleType("edge_tts")
 edge_dummy.Communicate = lambda *a, **k: type("C", (), {"save": lambda self, p: None})()
+async def dummy_list_voices():
+    return [{"ShortName": "en-US-GuyNeural", "Locale": "en-US"}]
+edge_dummy.list_voices = dummy_list_voices
 sys.modules.setdefault("edge_tts", edge_dummy)
 
 from gui_pyside6.backend import available_backends, available_transcribers, get_mms_languages
@@ -44,6 +47,13 @@ def test_tortoise_backend_available():
 
 def test_edge_tts_backend_available():
     assert "edge_tts" in available_backends()
+
+
+def test_get_edge_voices_returns_list():
+    from gui_pyside6.backend import get_edge_voices
+    voices = get_edge_voices()
+    assert isinstance(voices, list)
+    assert voices and isinstance(voices[0], str)
 
 
 def test_demucs_backend_available():
