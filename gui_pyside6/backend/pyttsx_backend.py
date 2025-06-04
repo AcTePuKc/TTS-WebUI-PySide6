@@ -9,7 +9,6 @@ def synthesize_to_file(
     rate: int | None = None,
     voice: str | None = None,
     lang: str | None = None,
-
 ) -> Path:
     """Synthesize speech using pyttsx3 and save to a WAV file."""
     engine = pyttsx3.init()
