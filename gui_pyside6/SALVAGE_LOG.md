@@ -43,3 +43,4 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
   packages like `pyttsx3` are only required when their backend is selected.
 - Fixed missing `pip` errors on Windows by bootstrapping with `ensurepip` before
   installing packages and imported `importlib.util` explicitly in the backend.
+
