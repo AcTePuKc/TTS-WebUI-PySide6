@@ -147,3 +147,4 @@ class MainWindow(QtWidgets.QMainWindow):
         base = create_base_filename(text[:15], str(OUTPUT_DIR), backend, date)
         ext = ".mp3" if backend == "gtts" else ".wav"
         return Path(base + ext)
+
