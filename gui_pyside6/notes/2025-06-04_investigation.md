@@ -40,3 +40,11 @@ automatically disabled when no text is entered, the selected backend is not
 installed, or synthesis is currently running. Console messages indicate when
 synthesis starts and finishes. Further improvements such as a dedicated stop
 button are still pending.
+
+## Follow-up 2025-06-05
+
+Errors raised inside a backend prevented the final `update_synthesize_enabled()`
+call from executing. As a result the **Synthesize** button stayed disabled after
+a failure and the GUI had to be restarted. The `on_synthesize` method now wraps
+the backend call in a `try/except/finally` block so the busy flag is always
+cleared and the button state recovers even if synthesis fails.
