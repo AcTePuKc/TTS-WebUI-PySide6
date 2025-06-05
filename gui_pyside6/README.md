@@ -38,6 +38,8 @@ Backend packages are defined in `backend/backend_requirements.json`. Installatio
 - Experimental audio reconstruction with **Vocos**.
 - Music source separation with **Demucs**. Load an audio file and the backend
   generates individual stem tracks.
+- Optional UI translations. Place custom `.qm` and `.json` files under
+  `~/.hybrid_tts/translations`.
 
 ## Preferences
 
@@ -46,6 +48,9 @@ Open **Edit → Preferences** to configure the application.
 - **Auto play after synthesis** – automatically play generated audio.
 - **Output directory** – folder where synthesized files are saved. Defaults to `outputs/`.
 - **Uninstall Backends** – remove optional TTS backends you previously installed.
+
+Custom translation files can be placed in `~/.hybrid_tts/translations` to
+augment the UI language list.
 
 Your settings are stored in `~/.hybrid_tts/preferences.json`.
 
