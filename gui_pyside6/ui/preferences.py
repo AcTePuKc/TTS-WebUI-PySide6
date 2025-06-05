@@ -3,6 +3,7 @@ from __future__ import annotations
 from PySide6 import QtWidgets, QtCore
 
 from ..backend import available_backends, is_backend_installed, uninstall_backend
+from ..utils.languages import get_available_languages
 from ..utils.preferences import load_preferences
 
 
@@ -37,6 +38,20 @@ class PreferencesDialog(QtWidgets.QDialog):
         out_row.addWidget(self.out_edit)
         out_row.addWidget(out_browse)
         layout.addLayout(out_row)
+
+        lang_row = QtWidgets.QHBoxLayout()
+        lang_label = QtWidgets.QLabel("UI language")
+        self.lang_combo = QtWidgets.QComboBox()
+        self.languages = get_available_languages()
+        for code, name in self.languages.items():
+            self.lang_combo.addItem(name, code)
+        pref_lang = self.prefs.get("ui_lang", "en")
+        idx = self.lang_combo.findData(pref_lang)
+        if idx >= 0:
+            self.lang_combo.setCurrentIndex(idx)
+        lang_row.addWidget(lang_label)
+        lang_row.addWidget(self.lang_combo)
+        layout.addLayout(lang_row)
 
         self.backend_list = QtWidgets.QListWidget()
         layout.addWidget(self.backend_list)
@@ -76,5 +91,6 @@ class PreferencesDialog(QtWidgets.QDialog):
             "autoplay": self.autoplay_box.isChecked(),
             "api_port": self.port_spin.value(),
             "output_dir": self.out_edit.text() or "outputs",
+            "ui_lang": self.lang_combo.currentData() or "en",
         }
 

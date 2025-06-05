@@ -18,6 +18,7 @@ from ..backend import (
     get_edge_voices,
     get_kokoro_voices,
 )
+from ..utils.languages import find_qm_file
 from ..utils.create_base_filename import create_base_filename
 from ..utils.open_folder import open_folder
 from ..utils.preferences import load_preferences, save_preferences
@@ -77,6 +78,17 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.prefs = load_preferences()
+
+        self._translator = None
+        lang_code = self.prefs.get("ui_lang")
+        if lang_code and lang_code != "en":
+            qm_path = find_qm_file(lang_code)
+            if qm_path:
+                translator = QtCore.QTranslator()
+                if translator.load(str(qm_path)):
+                    QtCore.QCoreApplication.installTranslator(translator)
+                    self._translator = translator
+        self._current_lang = lang_code or "en"
         global OUTPUT_DIR
         OUTPUT_DIR = Path(self.prefs.get("output_dir", "outputs"))
         self.setWindowTitle("PySide6 TTS Launcher")
@@ -563,9 +575,24 @@ class MainWindow(QtWidgets.QMainWindow):
             OUTPUT_DIR = Path(self.prefs.get("output_dir", "outputs"))
             self.update_install_status()
 
+            new_lang = self.prefs.get("ui_lang", "en")
+            if new_lang != self._current_lang:
+                if self._translator:
+                    QtCore.QCoreApplication.removeTranslator(self._translator)
+                    self._translator = None
+                if new_lang != "en":
+                    qm_path = find_qm_file(new_lang)
+                    if qm_path:
+                        translator = QtCore.QTranslator()
+                        if translator.load(str(qm_path)):
+                            QtCore.QCoreApplication.installTranslator(translator)
+                            self._translator = translator
+                self._current_lang = new_lang
+
     def closeEvent(self, event):
         self.prefs["autoplay"] = self.autoplay_check.isChecked()
         self.prefs["output_dir"] = str(OUTPUT_DIR)
+        self.prefs["ui_lang"] = self._current_lang
         save_preferences(self.prefs)
         if self.api_process is not None:
             self.api_process.terminate()
