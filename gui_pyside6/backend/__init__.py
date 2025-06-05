@@ -8,8 +8,8 @@ import json
 import sys
 from pathlib import Path
 
-from datetime import datetime
 
+from datetime import datetime
 from ..utils.install_utils import (
     install_package_in_venv,
     uninstall_package_from_venv,
@@ -149,8 +149,6 @@ def ensure_backend_installed(name: str) -> None:
     missing = missing_backend_packages(name)
     if missing:
         install_package_in_venv(missing)
-        _log_action("install", name, missing)
-
 
 def uninstall_backend(name: str) -> None:
     """Uninstall packages for the given backend if present."""
@@ -165,4 +163,3 @@ def _log_action(action: str, name: str, packages: list[str]) -> None:
     log_file = _LOG_DIR / "install.log"
     with log_file.open("a", encoding="utf-8") as f:
         f.write(f"{datetime.now().isoformat()} {action} {name}: {', '.join(packages)}\n")
-

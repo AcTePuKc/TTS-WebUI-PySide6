@@ -65,7 +65,8 @@ def install_package_in_venv(package: str | Iterable[str]):
 
 
 def uninstall_package_from_venv(package: str | Iterable[str]):
-    """Uninstall packages from the active or hybrid_tts venv."""
+    """Uninstall packages from the current venv if active, else from hybrid_tts venv."""
+
     if isinstance(package, str):
         package = [package]
 

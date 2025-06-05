@@ -2,7 +2,7 @@ import os, sys
 from unittest import mock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gui_pyside6.utils.install_utils import install_package_in_venv
+from gui_pyside6.utils.install_utils import install_package_in_venv, uninstall_package_from_venv
 
 def test_install_package_uses_ensurepip_and_pip():
     calls = []
@@ -46,3 +46,12 @@ def test_active_env_detected_via_conda_prefix():
 
     python_used = [c for c in calls if c[0] == 'call' and 'pip' in c[1]][0][1][0]
     assert python_used == sys.executable
+
+
+def test_uninstall_package_uses_pip_uninstall():
+    with mock.patch('gui_pyside6.utils.install_utils._is_venv_active', return_value=True), \
+         mock.patch('subprocess.check_call') as call:
+        uninstall_package_from_venv('dummy')
+    call.assert_called_once()
+    args = call.call_args[0][0]
+    assert 'pip' in args and 'uninstall' in args
