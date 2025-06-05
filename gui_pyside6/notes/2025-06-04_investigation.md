@@ -243,5 +243,20 @@ obtaining the list of voices. The GUI's voice dropdown stayed empty because the
 collects all `*.pt` files and returns the stem names so the voice selector is
 populated correctly again.
 
+## Follow-up 2025-06-22
+
+Initial implementation used `Path(spec.origin).parent` as the base path when
+locating the voices bundled with the FastAPI package. This resolved to the
+`kokoro_fastapi` package directory and missed the adjacent `api` folder.
+Updating the helper to use `Path(spec.origin).parent.parent` fixes the lookup
+and voice names appear in the dropdown once more.
+
 Further work may be required to integrate the `kokoro-fastapi` API for audio
 generation, but listing voices is operational.
+
+## Follow-up 2025-06-23
+
+`is_backend_installed('kokoro')` failed because it searched for the
+`kokoro_fastapi` module which does not exist. The detection logic now checks
+the installed distribution via `importlib.metadata` so the GUI correctly
+recognizes when Kokoro is present.

@@ -17,3 +17,20 @@ With these changes the Kokoro voice list populates correctly once `extension_kok
 The latest Kokoro releases ship as `kokoro-fastapi` and no longer expose a
 `CHOICES` module. `list_voices()` now falls back to scanning the packaged
 `voices` directory when `extension_kokoro` is missing.
+
+### Follow-up 2
+
+The fallback path originally used `Path(spec.origin).parent`, which resolved to
+`kokoro_fastapi/` inside the package. The voice models reside one directory
+higher under `api/src/voices/v1_0`. Adjusting the path to
+`Path(spec.origin).parent.parent` restores voice detection for the FastAPI
+package.
+
+### Follow-up 3
+
+`is_backend_installed('kokoro')` still returned `False` even after installing
+`kokoro-fastapi` because the helper looked for an importable module name.
+The package exposes its modules under generic names like `inference` and
+`services` so `importlib.util.find_spec("kokoro_fastapi")` failed.  Installation
+checks now rely on `importlib.metadata.distribution` to detect the presence of
+the distribution regardless of module layout.
