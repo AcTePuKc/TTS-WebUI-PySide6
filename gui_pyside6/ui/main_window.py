@@ -476,3 +476,13 @@ class MainWindow(QtWidgets.QMainWindow):
         backend_ready = is_backend_installed(backend)
         busy = getattr(self, "_synth_busy", False)
         self.button.setEnabled(text_present and backend_ready and not busy)
+
+    def closeEvent(self, event):
+        if self.api_process is not None:
+            self.api_process.terminate()
+            try:
+                self.api_process.wait(5)
+            except Exception:
+                pass
+            self.api_process = None
+        super().closeEvent(event)
