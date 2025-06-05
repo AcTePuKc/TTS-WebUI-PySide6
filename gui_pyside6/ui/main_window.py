@@ -41,6 +41,24 @@ class SynthesizeWorker(QtCore.QThread):
             err = e
         self.finished.emit(self.output, err)
 
+class InstallWorker(QtCore.QThread):
+    finished = QtCore.Signal(str, object)
+
+    def __init__(self, backend: str):
+        super().__init__()
+        self.backend = backend
+
+    def run(self):
+        from ..backend import ensure_backend_installed
+
+        try:
+            ensure_backend_installed(self.backend)
+            err = None
+        except Exception as e:
+            err = e
+        self.finished.emit(self.backend, err)
+
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -59,6 +77,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.text_edit.textChanged.connect(self.update_synthesize_enabled)
         layout.addWidget(self.text_edit)
 
+        self.audio_file: str | None = None
         # Load audio button for backends that operate on files
         self.load_audio_button = QtWidgets.QPushButton("Load Audio File")
         self.load_audio_button.clicked.connect(self.on_load_audio)
@@ -128,6 +147,8 @@ class MainWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.play_button)
 
         self.autoplay_check = QtWidgets.QCheckBox("Auto play after synthesis")
+        self.autoplay_check.setChecked(True)
+
         layout.addWidget(self.autoplay_check)
 
         cb_form = QtWidgets.QFormLayout()
@@ -210,10 +231,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if backend in {"demucs", "vocos"}:
             # These tools operate on audio files rather than text
-            if not Path(text).is_file():
-                self.status.setText("Please enter a valid audio file path")
+            if not self.audio_file or not Path(self.audio_file).is_file():
+                self.status.setText("Please load an audio file first")
                 self.update_synthesize_enabled()
                 return
+            text = self.audio_file
+
 
         self._synth_busy = True
         self.update_synthesize_enabled()
@@ -302,7 +325,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self, "Select Audio File", str(Path.home()), "Audio Files (*.wav *.mp3 *.flac);;All Files (*)"
         )
         if file_path:
-            self.text_edit.setPlainText(file_path)
+            self.audio_file = file_path
+            self.load_audio_button.setText(Path(file_path).name)
+
             self.update_synthesize_enabled()
 
     def on_load_voice_prompt(self):
@@ -379,6 +404,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.lang_combo.setEnabled(False)
 
             self.load_audio_button.setVisible(backend in {"demucs", "vocos"})
+            if backend not in {"demucs", "vocos"}:
+                self.audio_file = None
+                self.load_audio_button.setText("Load Audio File")
+
             self.chatterbox_opts.setVisible(backend == "chatterbox")
             self.update_synthesize_enabled()
 
@@ -390,9 +419,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_install_backend(self):
         backend = self.backend_combo.currentText()
-        ensure_backend_installed(backend)
+        self.install_button.setEnabled(False)
+        self.status.setText(f"Installing {backend}...")
+        self.install_worker = InstallWorker(backend)
+        self.install_worker.finished.connect(self.on_install_finished)
+        self.install_worker.start()
+
+    def on_install_finished(self, backend: str, error: object):
+        if error:
+            self.status.setText(f"Install error: {error}")
+        else:
+            import importlib
+            importlib.invalidate_caches()
+            self.status.setText(f"{backend} installed")
         self.update_install_status()
-        # reload backend specific options
         self.on_backend_changed(backend)
         self.update_synthesize_enabled()
 

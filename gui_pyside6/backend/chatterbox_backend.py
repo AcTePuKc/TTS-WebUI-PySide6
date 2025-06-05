@@ -3,6 +3,38 @@ from __future__ import annotations
 from pathlib import Path
 
 
+def _chunk_text(text: str) -> list[str]:
+    """Split long text into manageable chunks."""
+    try:
+        from nltk.tokenize import sent_tokenize
+    except Exception:
+        # simple fallback
+        sentences = text.replace("\n", " ").split(".")
+    else:
+        sentences = sent_tokenize(text)
+
+    chunks: list[str] = []
+    current = ""
+    for sent in sentences:
+        sent = sent.strip()
+        if not sent:
+            continue
+        if len(current) + len(sent) + 1 <= 280:
+            current = f"{current} {sent}".strip()
+        else:
+            if len(current) >= 20:
+                chunks.append(current)
+                current = sent
+            else:
+                current = f"{current} {sent}".strip()
+        while len(current) > 280:
+            chunks.append(current[:280])
+            current = current[280:]
+    if current:
+        chunks.append(current)
+    return chunks
+
+
 def synthesize_to_file(
     text: str,
     output_path: Path,
@@ -44,11 +76,13 @@ def synthesize_to_file(
         else:
             raise RuntimeError("No voice provided and no default voices found")
 
-    chunks = [chunk for chunk in tts.generate(text, exaggeration=exaggeration, cfg_weight=cfg_weight, temperature=temperature)]
-    if not chunks:
-        raise RuntimeError("Chatterbox failed to generate audio")
-    audio = torch.cat(chunks, dim=1).squeeze().cpu().numpy()
-
+    all_chunks = []
+    for part in _chunk_text(text):
+        part_chunks = [c for c in tts.generate(part, exaggeration=exaggeration, cfg_weight=cfg_weight, temperature=temperature)]
+        if not part_chunks:
+            raise RuntimeError("Chatterbox failed to generate audio")
+        all_chunks.extend(part_chunks)
+    audio = torch.cat(all_chunks, dim=1).squeeze().cpu().numpy()
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     sf.write(str(output_path), audio, tts.sr)

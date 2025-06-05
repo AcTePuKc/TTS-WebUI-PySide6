@@ -144,3 +144,14 @@ Implemented two usability improvements:
 - Implemented Chatterbox-specific sliders for **exaggeration**, **CFG/Pace**
   and **temperature**.
 - Long operations now run in a background thread to keep the UI responsive.
+
+## Follow-up 2025-06-14
+
+- Backend installation now runs in a separate thread so the UI stays responsive.
+- Fixed Kokoro backend import errors by adding the missing `extension_kokoro`
+  package requirement.
+- Audio file loading for Demucs and Vocos no longer overwrites the text field;
+  the selected path is stored separately.
+- Chatterbox synthesis now splits long text into 280 character chunks using
+  NLTK when available.
+
