@@ -76,6 +76,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.prefs = load_preferences()
+        global OUTPUT_DIR
+        OUTPUT_DIR = Path(self.prefs.get("output_dir", "outputs"))
         self.setWindowTitle("PySide6 TTS Launcher")
         self.resize(400, 200)
 
@@ -556,10 +558,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.prefs.update(dlg.get_preferences())
             save_preferences(self.prefs)
             self.autoplay_check.setChecked(self.prefs.get("autoplay", True))
+            global OUTPUT_DIR
+            OUTPUT_DIR = Path(self.prefs.get("output_dir", "outputs"))
             self.update_install_status()
 
     def closeEvent(self, event):
         self.prefs["autoplay"] = self.autoplay_check.isChecked()
+        self.prefs["output_dir"] = str(OUTPUT_DIR)
         save_preferences(self.prefs)
         if self.api_process is not None:
             self.api_process.terminate()
