@@ -253,3 +253,10 @@ and voice names appear in the dropdown once more.
 
 Further work may be required to integrate the `kokoro-fastapi` API for audio
 generation, but listing voices is operational.
+
+## Follow-up 2025-06-23
+
+`is_backend_installed('kokoro')` failed because it searched for the
+`kokoro_fastapi` module which does not exist. The detection logic now checks
+the installed distribution via `importlib.metadata` so the GUI correctly
+recognizes when Kokoro is present.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import site
 
 
 def synthesize_to_file(
@@ -79,7 +80,16 @@ def list_voices() -> list[tuple[str, str]]:
             voice_dir = base / "api" / "src" / "voices" / "v1_0"
             if voice_dir.exists():
                 voices = [p.stem for p in voice_dir.glob("*.pt")]
-                return [(v, v) for v in sorted(voices)]
+                if voices:
+                    return [(v, v) for v in sorted(voices)]
     except Exception:
         pass
+
+    # Fallback: search all site-packages locations
+    for root in site.getsitepackages():
+        voice_dir = Path(root) / "api" / "src" / "voices" / "v1_0"
+        if voice_dir.exists():
+            voices = [p.stem for p in voice_dir.glob("*.pt")]
+            if voices:
+                return [(v, v) for v in sorted(voices)]
     return []

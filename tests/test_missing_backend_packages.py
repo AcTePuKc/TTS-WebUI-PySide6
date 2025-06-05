@@ -1,6 +1,7 @@
 import os
 import sys
 from unittest import mock
+import importlib.metadata
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -9,11 +10,13 @@ from gui_pyside6.backend import missing_backend_packages
 
 def test_git_requirement_parsing():
     checked = []
-    def fake_find_spec(name):
-        checked.append(name)
-        return object()
 
-    with mock.patch('importlib.util.find_spec', side_effect=fake_find_spec):
+    def fake_distribution(name):
+        checked.append(name)
+        class D: ...
+        return D()
+
+    with mock.patch('importlib.metadata.distribution', side_effect=fake_distribution):
         missing = missing_backend_packages('bark')
 
     assert not missing
@@ -21,12 +24,13 @@ def test_git_requirement_parsing():
 
 
 def test_case_insensitive_module_name():
-    def fake_find_spec(name):
-        if name == 'gtts':
-            return object()
-        return None
+    def fake_distribution(name):
+        if name.lower() == 'gtts':
+            class D: ...
+            return D()
+        raise importlib.metadata.PackageNotFoundError
 
-    with mock.patch('importlib.util.find_spec', side_effect=fake_find_spec):
+    with mock.patch('importlib.metadata.distribution', side_effect=fake_distribution):
         missing = missing_backend_packages('gtts')
 
     assert missing == []
