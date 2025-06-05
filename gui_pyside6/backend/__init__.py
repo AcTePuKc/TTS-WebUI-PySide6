@@ -4,6 +4,7 @@ import functools
 import importlib
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 from ..utils.install_utils import install_package_in_venv
@@ -23,12 +24,34 @@ BACKENDS = {
     "demucs": functools.partial(_call_backend, "demucs_backend", "separate_audio"),
     "mms": functools.partial(_call_backend, "mms_backend", "synthesize_to_file"),
     "vocos": functools.partial(_call_backend, "vocos_backend", "reconstruct_audio"),
+    "kokoro": functools.partial(_call_backend, "kokoro_backend", "synthesize_to_file"),
+    "chatterbox": functools.partial(_call_backend, "chatterbox_backend", "synthesize_to_file"),
 }
 
 def get_edge_voices(locale: str | None = None) -> list[str]:
     """Return list of available Edge TTS voices."""
+    if "edge_tts" not in sys.modules:
+        try:
+            found = importlib.util.find_spec("edge_tts") is not None
+        except Exception:
+            found = False
+        if not found:
+            ensure_backend_installed("edge_tts")
+    return _call_backend("edge_tts_backend", "list_voices", locale=locale)
+
+
+def get_kokoro_voices() -> list[tuple[str, str]]:
+    """Return display names and identifiers for Kokoro voices."""
     try:
-        return _call_backend("edge_tts_backend", "list_voices", locale=locale)
+        return _call_backend("kokoro_backend", "list_voices")
+    except Exception:
+        return []
+
+
+def get_chatterbox_voices() -> list[tuple[str, str]]:
+    """Return available Chatterbox voice names and file paths."""
+    try:
+        return _call_backend("chatterbox_backend", "list_voices")
     except Exception:
         return []
 
