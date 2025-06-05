@@ -75,7 +75,7 @@ def list_voices() -> list[tuple[str, str]]:
         import importlib.util
         spec = importlib.util.find_spec("kokoro_fastapi")
         if spec and spec.origin:
-            base = Path(spec.origin).parent
+            base = Path(spec.origin).parent.parent
             voice_dir = base / "api" / "src" / "voices" / "v1_0"
             if voice_dir.exists():
                 voices = [p.stem for p in voice_dir.glob("*.pt")]
