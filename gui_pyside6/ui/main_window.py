@@ -5,10 +5,10 @@ from datetime import datetime
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
-import inspect
 
 from ..backend import (
     BACKENDS,
+    BACKEND_FEATURES,
     available_backends,
     ensure_backend_installed,
     is_backend_installed,
@@ -107,23 +107,25 @@ class MainWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.lang_combo)
 
         # Speech rate selector
-        rate_row = QtWidgets.QHBoxLayout()
+        self.rate_widget = QtWidgets.QWidget()
+        rate_row = QtWidgets.QHBoxLayout(self.rate_widget)
         rate_label = QtWidgets.QLabel("Speech Rate:")
         self.rate_spin = QtWidgets.QSpinBox()
         self.rate_spin.setRange(50, 300)
         self.rate_spin.setValue(200)
         rate_row.addWidget(rate_label)
         rate_row.addWidget(self.rate_spin)
-        layout.addLayout(rate_row)
+        layout.addWidget(self.rate_widget)
 
-        seed_row = QtWidgets.QHBoxLayout()
+        self.seed_widget = QtWidgets.QWidget()
+        seed_row = QtWidgets.QHBoxLayout(self.seed_widget)
         seed_label = QtWidgets.QLabel("Seed (0=random):")
         self.seed_spin = QtWidgets.QSpinBox()
         self.seed_spin.setRange(0, 2**31 - 1)
         self.seed_spin.setValue(0)
         seed_row.addWidget(seed_label)
         seed_row.addWidget(self.seed_spin)
-        layout.addLayout(seed_row)
+        layout.addWidget(self.seed_widget)
 
         # Synthesize button
         self.button = QtWidgets.QPushButton("Synthesize")
@@ -247,9 +249,9 @@ class MainWindow(QtWidgets.QMainWindow):
         seed = self.seed_spin.value() or None
 
         func = BACKENDS[backend]
-        sig = inspect.signature(func)
+        features = BACKEND_FEATURES.get(backend, set())
         kwargs = {}
-        if "rate" in sig.parameters:
+        if "rate" in features:
             if backend == "edge_tts":
                 delta = rate - 200
                 kwargs["rate"] = f"{delta:+d}%"
@@ -263,11 +265,11 @@ class MainWindow(QtWidgets.QMainWindow):
             kwargs["exaggeration"] = self.cb_exaggeration.value()
             kwargs["cfg_weight"] = self.cb_cfg.value()
             kwargs["temperature"] = self.cb_temp.value()
-        elif "voice" in sig.parameters and voice_id:
+        elif "voice" in features and voice_id:
             kwargs["voice"] = voice_id
-        if "lang" in sig.parameters and lang_code:
+        if "lang" in features and lang_code:
             kwargs["lang"] = lang_code
-        if "seed" in sig.parameters and seed is not None:
+        if "seed" in features and seed is not None:
             kwargs["seed"] = seed
 
         print(f"[INFO] Synthesizing with {backend}...")
@@ -339,81 +341,99 @@ class MainWindow(QtWidgets.QMainWindow):
             self.cb_voice_button.setText(Path(file_path).name)
 
     def on_backend_changed(self, backend: str):
-            self.update_install_status()
-            if not is_backend_installed(backend):
-                self.voice_combo.clear()
-                self.voice_combo.setEnabled(False)
-                self.lang_combo.clear()
-                self.lang_combo.setEnabled(False)
-                return
+        self.update_install_status()
+        features = BACKEND_FEATURES.get(backend, set())
 
-            if backend == "pyttsx3":
-                try:
-                    import pyttsx3
-                    engine = pyttsx3.init()
-                    voices = engine.getProperty("voices")
-                except Exception:
-                    voices = []
+        if not is_backend_installed(backend):
+            self.voice_combo.clear()
+            self.voice_combo.setEnabled(False)
+            self.lang_combo.clear()
+            self.lang_combo.setEnabled(False)
+            self.rate_widget.setVisible(False)
+            self.seed_widget.setVisible(False)
+            return
+
+        # configure voice and language lists
+        if backend == "pyttsx3":
+            try:
+                import pyttsx3
+                engine = pyttsx3.init()
+                voices = engine.getProperty("voices")
+            except Exception:
+                voices = []
+            self.voice_combo.clear()
+            self.voice_combo.addItem("(default)", None)
+            for v in voices:
+                name = getattr(v, "name", v.id)
+                self.voice_combo.addItem(name, v.id)
+            self.voice_combo.setEnabled(True)
+            self.lang_combo.clear()
+            self.lang_combo.setEnabled(False)
+        else:
+            self.voice_combo.clear()
+            self.voice_combo.setEnabled(False)
+            if backend == "gtts":
+                languages = get_gtts_languages()
+                self.lang_combo.clear()
+                for code, name in languages.items():
+                    self.lang_combo.addItem(f"{name} ({code})", code)
+                self.lang_combo.setEnabled(True)
+            elif backend == "edge_tts":
+                voices = get_edge_voices()
                 self.voice_combo.clear()
-                self.voice_combo.addItem("(default)", None)
                 for v in voices:
-                    name = getattr(v, "name", v.id)
-                    self.voice_combo.addItem(name, v.id)
+                    self.voice_combo.addItem(v, v)
                 self.voice_combo.setEnabled(True)
                 self.lang_combo.clear()
                 self.lang_combo.setEnabled(False)
-            else:
+            elif backend == "kokoro":
+                voices = get_kokoro_voices()
                 self.voice_combo.clear()
-                self.voice_combo.setEnabled(False)
-                if backend == "gtts":
-                    languages = get_gtts_languages()
-                    self.lang_combo.clear()
-                    for code, name in languages.items():
-                        self.lang_combo.addItem(f"{name} ({code})", code)
-                    self.lang_combo.setEnabled(True)
-                elif backend == "edge_tts":
-                    voices = get_edge_voices()
-                    self.voice_combo.clear()
-                    for v in voices:
-                        self.voice_combo.addItem(v, v)
-                    self.voice_combo.setEnabled(True)
-                    self.lang_combo.clear()
-                    self.lang_combo.setEnabled(False)
-                elif backend == "kokoro":
-                    voices = get_kokoro_voices()
-                    self.voice_combo.clear()
-                    for name, ident in voices:
-                        self.voice_combo.addItem(name, ident)
-                    self.voice_combo.setEnabled(True)
-                    self.lang_combo.clear()
-                    self.lang_combo.setEnabled(False)
-                elif backend == "chatterbox":
-                    from ..backend import get_chatterbox_voices
-                    voices = get_chatterbox_voices()
-                    self.voice_combo.clear()
-                    self.voice_combo.addItem("(none)", None)
-                    for name, path in voices:
-                        self.voice_combo.addItem(name, path)
-                    self.voice_combo.setEnabled(True)
-                    self.lang_combo.clear()
-                    self.lang_combo.setEnabled(False)
-                    self.cb_voice_path = None
-                    self.cb_voice_button.setText("Load Voice Prompt")
-                else:
-                    self.lang_combo.clear()
-                    self.lang_combo.setEnabled(False)
+                for name, ident in voices:
+                    self.voice_combo.addItem(name, ident)
+                self.voice_combo.setEnabled(True)
+                self.lang_combo.clear()
+                self.lang_combo.setEnabled(False)
+            elif backend == "chatterbox":
+                from ..backend import get_chatterbox_voices
+                voices = get_chatterbox_voices()
+                self.voice_combo.clear()
+                self.voice_combo.addItem("(none)", None)
+                for name, path in voices:
+                    self.voice_combo.addItem(name, path)
+                self.voice_combo.setEnabled(True)
+                self.lang_combo.clear()
+                self.lang_combo.setEnabled(False)
+                self.cb_voice_path = None
+                self.cb_voice_button.setText("Load Voice Prompt")
+            else:
+                self.lang_combo.clear()
+                self.lang_combo.setEnabled(False)
 
-            self.load_audio_button.setVisible(backend in {"demucs", "vocos"})
-            if backend not in {"demucs", "vocos"}:
-                self.audio_file = None
-                self.load_audio_button.setText("Load Audio File")
+        # final visibility based on declared feature support
+        self.voice_combo.setVisible("voice" in features)
+        self.lang_combo.setVisible("lang" in features)
+        self.rate_widget.setVisible("rate" in features)
+        self.seed_widget.setVisible("seed" in features)
 
-            self.chatterbox_opts.setVisible(backend == "chatterbox")
-            self.update_synthesize_enabled()
+        file_based = "file" in features
+        self.load_audio_button.setVisible(file_based)
+        if not file_based:
+            self.audio_file = None
+            self.load_audio_button.setText("Load Audio File")
+
+        self.chatterbox_opts.setVisible(backend == "chatterbox")
+        self.update_synthesize_enabled()
 
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        base = create_base_filename(text[:15], str(OUTPUT_DIR), backend, date)
+        snippet = text[:15]
+        features = BACKEND_FEATURES.get(backend, set())
+        if "file" in features and Path(text).exists():
+            snippet = Path(text).stem[:15]
+        base = create_base_filename(snippet, str(OUTPUT_DIR), backend, date)
+        if backend == "demucs":
+            return Path(base)
         ext = ".mp3" if backend == "gtts" else ".wav"
         return Path(base + ext)
 
@@ -447,7 +467,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_synthesize_enabled()
 
     def update_synthesize_enabled(self):
+        backend = self.backend_combo.currentText()
+        features = BACKEND_FEATURES.get(backend, set())
         text_present = bool(self.text_edit.toPlainText().strip())
-        backend_ready = is_backend_installed(self.backend_combo.currentText())
+        if "file" in features:
+            text_present = self.audio_file is not None
+        backend_ready = is_backend_installed(backend)
         busy = getattr(self, "_synth_busy", False)
         self.button.setEnabled(text_present and backend_ready and not busy)
