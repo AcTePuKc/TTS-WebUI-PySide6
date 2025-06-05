@@ -1,6 +1,7 @@
 from pathlib import Path
 import subprocess
 import sys
+import webbrowser
 from datetime import datetime
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QUrl
@@ -160,8 +161,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # --- Misc buttons row ---
         misc_row = QtWidgets.QHBoxLayout()
         self.api_button = QtWidgets.QPushButton("Run API Server")
-        self.api_button.clicked.connect(self.on_api_server)
+        self.api_button.clicked.connect(self.on_api_server_toggle)
         misc_row.addWidget(self.api_button)
+
+        self.open_api_button = QtWidgets.QPushButton("Open API Docs")
+        self.open_api_button.clicked.connect(self.on_open_api)
+        misc_row.addWidget(self.open_api_button)
 
         self.open_button = QtWidgets.QPushButton("Open Output Folder")
         self.open_button.clicked.connect(self.on_open_output)
@@ -299,17 +304,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.worker.finished.connect(self.on_synthesize_finished)
         self.worker.start()
 
-    def on_api_server(self):
+    def on_api_server_toggle(self):
+        self.api_button.setEnabled(False)
         if self.api_process is None:
             ensure_backend_installed("api_server")
             self.api_process = subprocess.Popen(
                 [sys.executable, "-m", "gui_pyside6.backend.api_server"]
             )
-            self.api_button.setText("API Server Running...")
-            self.api_button.setEnabled(False)
+            self.api_button.setText("Stop API Server")
             self.status.setText("API server started at http://127.0.0.1:8000")
         else:
-            self.status.setText("API server already running")
+            self.api_process.terminate()
+            self.api_process.wait()
+            self.api_process = None
+            self.api_button.setText("Run API Server")
+            self.status.setText("API server stopped")
+        QtCore.QTimer.singleShot(1000, lambda: self.api_button.setEnabled(True))
+
+    def on_open_api(self):
+        webbrowser.open("http://127.0.0.1:8000/docs")
 
     def on_open_output(self):
         folder = self.last_output.parent if self.last_output else OUTPUT_DIR
@@ -519,5 +532,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         self.prefs["autoplay"] = self.autoplay_check.isChecked()
         save_preferences(self.prefs)
+        if self.api_process is not None:
+            self.api_process.terminate()
+            self.api_process.wait()
         super().closeEvent(event)
 
