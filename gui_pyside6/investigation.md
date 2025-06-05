@@ -25,3 +25,12 @@ The fallback path originally used `Path(spec.origin).parent`, which resolved to
 higher under `api/src/voices/v1_0`. Adjusting the path to
 `Path(spec.origin).parent.parent` restores voice detection for the FastAPI
 package.
+
+### Follow-up 3
+
+`is_backend_installed('kokoro')` still returned `False` even after installing
+`kokoro-fastapi` because the helper looked for an importable module name.
+The package exposes its modules under generic names like `inference` and
+`services` so `importlib.util.find_spec("kokoro_fastapi")` failed.  Installation
+checks now rely on `importlib.metadata.distribution` to detect the presence of
+the distribution regardless of module layout.

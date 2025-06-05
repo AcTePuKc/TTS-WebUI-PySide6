@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 import importlib
 import importlib.util
+from importlib import metadata
 import json
 import sys
 from pathlib import Path
@@ -93,8 +94,8 @@ def _get_backend_packages(name: str) -> list[str]:
     return reqs.get(name, [])
 
 
-def _get_module_name(package_spec: str) -> str:
-    """Return the importable module name for the given requirement spec."""
+def _get_distribution_name(package_spec: str) -> str:
+    """Return the pip distribution name for the given requirement spec."""
     try:
         from packaging.requirements import Requirement
 
@@ -104,8 +105,7 @@ def _get_module_name(package_spec: str) -> str:
         # Fallback to a simple split if packaging is not available or parsing fails
         name = package_spec.split("@")[0].strip().split()[0]
 
-    # Normalize to a valid module name (pip packages may use dashes or casing)
-    return name.replace("-", "_").lower()
+    return name
 
 
 def get_gtts_languages():
@@ -127,8 +127,10 @@ def get_mms_languages() -> list[tuple[str, str]]:
 def missing_backend_packages(name: str) -> list[str]:
     missing = []
     for pkg in _get_backend_packages(name):
-        module_name = _get_module_name(pkg)
-        if importlib.util.find_spec(module_name) is None:
+        dist_name = _get_distribution_name(pkg)
+        try:
+            metadata.distribution(dist_name)
+        except metadata.PackageNotFoundError:
             missing.append(pkg)
     return missing
 
