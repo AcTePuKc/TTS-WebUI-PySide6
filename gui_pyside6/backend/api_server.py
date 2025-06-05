@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import argparse
 
 from . import BACKENDS, TRANSCRIBERS
 
@@ -59,11 +60,17 @@ def transcribe(req: TranscriptionRequest):
     return {"text": text}
 
 
-def run_server(host: str = "0.0.0.0", port: int = 8000):
+def run_server(host: str = "0.0.0.0", port: int = 8000) -> None:
+    """Run the FastAPI server using uvicorn."""
     import uvicorn
 
     uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
-    run_server()
+    parser = argparse.ArgumentParser(description="Run the Hybrid TTS API server")
+    parser.add_argument("--host", default="0.0.0.0", help="Bind address")
+    parser.add_argument("--port", type=int, default=8000, help="Listening port")
+    args = parser.parse_args()
+
+    run_server(host=args.host, port=args.port)

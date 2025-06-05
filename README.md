@@ -483,3 +483,11 @@ This repository includes a lightweight PySide6 launcher for offline TTS.
 5. Optional TTS backends such as `pyttsx3` or `gTTS` are installed on demand.
    Select a backend and click the **Install Backend** button if prompted.
 
+### API Server
+
+Use the **Run API Server** button to launch a FastAPI service (default port
+`8000`). Open `http://localhost:8000/docs` in your browser to explore the API.
+You can change the port via **Edit → Preferences**. If startup fails, check for
+port conflicts with `netstat -ano` on Windows or `lsof -i :<port>` on
+Linux/macOS.
+

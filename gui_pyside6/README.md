@@ -46,6 +46,15 @@ Open **Edit → Preferences** to configure the application.
 
 Your settings are stored in `~/.hybrid_tts/preferences.json`.
 
+## API Server
+
+Click **Run API Server** in the main window to start a FastAPI service. By default
+it listens on port `8000`. Visit `http://localhost:8000/docs` in your browser to
+try the interactive API. You can change the listening port via **Edit →
+Preferences** under "API server port". If the server fails to start, check for
+port conflicts using `netstat -ano` on Windows or `lsof -i :<port>` on
+Linux/macOS.
+
 ## Troubleshooting
 
 - On Windows, the **pyttsx3** backend may fail with `ModuleNotFoundError: No module named 'pywintypes'`.
