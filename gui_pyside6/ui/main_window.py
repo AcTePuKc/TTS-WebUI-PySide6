@@ -3,6 +3,7 @@ import subprocess
 import sys
 import webbrowser
 from datetime import datetime
+import time
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
@@ -20,6 +21,7 @@ from ..backend import (
 from ..utils.create_base_filename import create_base_filename
 from ..utils.open_folder import open_folder
 from ..utils.preferences import load_preferences, save_preferences
+from ..utils.timer import Timer
 from .preferences import PreferencesDialog
 
 OUTPUT_DIR = Path("outputs")
@@ -27,9 +29,9 @@ MAX_TEXT_LENGTH = 1000
 
 
 class SynthesizeWorker(QtCore.QThread):
-    """Run synthesis in a background thread."""
 
-    finished = QtCore.Signal(object, object)
+    finished = QtCore.Signal(Path, object, float)
+
 
     def __init__(self, func, text: str, output: Path, kwargs: dict):
         super().__init__()
@@ -40,14 +42,16 @@ class SynthesizeWorker(QtCore.QThread):
 
     def run(self):
         try:
-            result = self.func(self.text, self.output, **self.kwargs)
-            if result is None:
-                result = self.output
+            start = time.time()
+            with Timer():
+                self.func(self.text, self.output, **self.kwargs)
+            elapsed = time.time() - start
             err = None
         except Exception as e:
-            result = None
+            elapsed = 0.0
             err = e
-        self.finished.emit(result, err)
+        self.finished.emit(self.output, err, elapsed)
+
 
 class InstallWorker(QtCore.QThread):
     finished = QtCore.Signal(str, object)
@@ -358,8 +362,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.last_output = path
             self.on_play_output()
 
-    def on_synthesize_finished(self, result: object, error: object):
-        """Handle completion of the synthesis worker."""
+
+    def on_synthesize_finished(self, output: Path, error: object, elapsed: float):
         if error:
             self.status.setText(f"Error: {error}")
             print(f"[ERROR] {error}")
