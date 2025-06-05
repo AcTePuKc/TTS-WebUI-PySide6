@@ -8,7 +8,7 @@ import json
 import sys
 from pathlib import Path
 
-from ..utils.install_utils import install_package_in_venv
+from ..utils.install_utils import install_package_in_venv, uninstall_package_from_venv
 
 def _call_backend(module: str, func: str, *args, **kwargs):
     """Import the given backend module on demand and run the requested function."""
@@ -142,3 +142,12 @@ def ensure_backend_installed(name: str) -> None:
     missing = missing_backend_packages(name)
     if missing:
         install_package_in_venv(missing)
+
+
+def uninstall_backend(name: str) -> None:
+    """Uninstall packages for the given backend using distribution names."""
+    packages = _get_backend_packages(name)
+    if not packages:
+        return
+    dists = [_get_distribution_name(p) for p in packages]
+    uninstall_package_from_venv(dists)

@@ -13,7 +13,7 @@ gtts_dummy = type(sys)("gtts")
 gtts_dummy.gTTS = lambda *a, **k: None
 sys.modules.setdefault("gtts", gtts_dummy)
 
-from gui_pyside6.backend import ensure_backend_installed, is_backend_installed
+from gui_pyside6.backend import ensure_backend_installed, is_backend_installed, uninstall_backend
 import importlib.metadata
 
 
@@ -39,3 +39,10 @@ def test_is_backend_installed_true():
 def test_is_backend_installed_false():
     with mock.patch('importlib.metadata.distribution', side_effect=importlib.metadata.PackageNotFoundError):
         assert not is_backend_installed('pyttsx3')
+
+
+def test_uninstall_backend_passes_distribution_names():
+    with mock.patch('gui_pyside6.backend._get_backend_packages', return_value=['foo==1', 'bar @ git+https://x']):
+        with mock.patch('gui_pyside6.backend.uninstall_package_from_venv') as uninstall:
+            uninstall_backend('dummy')
+            uninstall.assert_called_once_with(['foo', 'bar'])

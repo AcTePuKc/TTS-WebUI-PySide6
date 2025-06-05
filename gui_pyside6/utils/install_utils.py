@@ -62,3 +62,20 @@ def install_package_in_venv(package: str | Iterable[str]):
 
     subprocess.run([str(python_exe), "-m", "ensurepip", "--upgrade"], check=True)
     subprocess.check_call([str(python_exe), "-m", "pip", "install", *package])
+
+
+def uninstall_package_from_venv(package: str | Iterable[str]):
+    """Uninstall packages from the current venv if active, else from hybrid_tts venv."""
+    if isinstance(package, str):
+        package = [package]
+
+    in_venv = _is_venv_active()
+
+    if in_venv:
+        python_exe = sys.executable
+    else:
+        _ensure_venv()
+        python_exe = _venv_python()
+
+    subprocess.check_call([str(python_exe), "-m", "pip", "uninstall", "-y", *package])
+
