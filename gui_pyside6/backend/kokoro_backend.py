@@ -74,7 +74,7 @@ def synthesize_to_file(
     if not audio_parts:
         raise RuntimeError("Kokoro TTS did not return audio")
 
-    audio = torch.cat(audio_parts, dim=1).squeeze().numpy()
+    audio = torch.cat(audio_parts, dim=-1).squeeze().numpy()
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     sf.write(str(output_path), audio, 24000)
