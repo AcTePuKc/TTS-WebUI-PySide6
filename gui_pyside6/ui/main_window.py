@@ -30,7 +30,7 @@ MAX_TEXT_LENGTH = 1000
 
 class SynthesizeWorker(QtCore.QThread):
 
-    finished = QtCore.Signal(Path, object, float)
+    finished = QtCore.Signal(object, object, float)
 
 
     def __init__(self, func, text: str, output: Path, kwargs: dict):
@@ -44,13 +44,14 @@ class SynthesizeWorker(QtCore.QThread):
         try:
             start = time.time()
             with Timer():
-                self.func(self.text, self.output, **self.kwargs)
+                result = self.func(self.text, self.output, **self.kwargs)
             elapsed = time.time() - start
             err = None
         except Exception as e:
             elapsed = 0.0
             err = e
-        self.finished.emit(self.output, err, elapsed)
+            result = None
+        self.finished.emit(result, err, elapsed)
 
 
 class InstallWorker(QtCore.QThread):
@@ -365,18 +366,18 @@ class MainWindow(QtWidgets.QMainWindow):
             self.on_play_output()
 
 
-    def on_synthesize_finished(self, output: Path, error: object, elapsed: float):
+    def on_synthesize_finished(self, result: object, error: object, elapsed: float):
         if error:
             self.status.setText(f"Error: {error}")
             print(f"[ERROR] {error}")
         else:
-            output_desc = output
-            if isinstance(output, list) and output:
+            output_desc = result
+            if isinstance(result, list) and result:
                 # demucs returns a list of stem paths
-                output_desc = output[0].parent
-                self.last_output = Path(output[0])
-            elif isinstance(output, (str, Path)):
-                self.last_output = Path(output)
+                output_desc = result[0].parent
+                self.last_output = Path(result[0])
+            elif isinstance(result, (str, Path)):
+                self.last_output = Path(result)
             else:
                 self.last_output = None
 
