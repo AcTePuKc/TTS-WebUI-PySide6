@@ -370,13 +370,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.status.setText(f"Error: {error}")
             print(f"[ERROR] {error}")
         else:
-            output_desc = result
-            if isinstance(result, list) and result:
+            output_desc = output
+            if isinstance(output, list) and output:
                 # demucs returns a list of stem paths
-                output_desc = result[0].parent
-                self.last_output = result[0]
-            elif isinstance(result, (str, Path)):
-                self.last_output = Path(result)
+                output_desc = output[0].parent
+                self.last_output = Path(output[0])
+            elif isinstance(output, (str, Path)):
+                self.last_output = Path(output)
             else:
                 self.last_output = None
 
