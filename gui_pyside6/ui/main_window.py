@@ -41,7 +41,6 @@ class SynthesizeWorker(QtCore.QThread):
             err = e
         self.finished.emit(self.output, err)
 
-
 class InstallWorker(QtCore.QThread):
     finished = QtCore.Signal(str, object)
 
@@ -58,6 +57,7 @@ class InstallWorker(QtCore.QThread):
         except Exception as e:
             err = e
         self.finished.emit(self.backend, err)
+
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -78,7 +78,6 @@ class MainWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.text_edit)
 
         self.audio_file: str | None = None
-
         # Load audio button for backends that operate on files
         self.load_audio_button = QtWidgets.QPushButton("Load Audio File")
         self.load_audio_button.clicked.connect(self.on_load_audio)
@@ -149,6 +148,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.autoplay_check = QtWidgets.QCheckBox("Auto play after synthesis")
         self.autoplay_check.setChecked(True)
+
         layout.addWidget(self.autoplay_check)
 
         cb_form = QtWidgets.QFormLayout()
@@ -236,6 +236,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.update_synthesize_enabled()
                 return
             text = self.audio_file
+
 
         self._synth_busy = True
         self.update_synthesize_enabled()
@@ -326,6 +327,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if file_path:
             self.audio_file = file_path
             self.load_audio_button.setText(Path(file_path).name)
+
             self.update_synthesize_enabled()
 
     def on_load_voice_prompt(self):
@@ -405,6 +407,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if backend not in {"demucs", "vocos"}:
                 self.audio_file = None
                 self.load_audio_button.setText("Load Audio File")
+
             self.chatterbox_opts.setVisible(backend == "chatterbox")
             self.update_synthesize_enabled()
 

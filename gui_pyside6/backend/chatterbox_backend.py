@@ -83,7 +83,6 @@ def synthesize_to_file(
             raise RuntimeError("Chatterbox failed to generate audio")
         all_chunks.extend(part_chunks)
     audio = torch.cat(all_chunks, dim=1).squeeze().cpu().numpy()
-
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     sf.write(str(output_path), audio, tts.sr)

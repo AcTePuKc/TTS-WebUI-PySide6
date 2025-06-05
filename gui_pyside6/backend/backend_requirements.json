@@ -37,6 +37,9 @@
   "chatterbox": [
     "extension_chatterbox @ git+https://github.com/rsxdalv/extension_chatterbox@main"
   ],
+  "chatterbox": [
+    "extension_chatterbox @ git+https://github.com/rsxdalv/extension_chatterbox@main"
+  ],
   "whisper": [
     "extension_whisper @ git+https://github.com/rsxdalv/extension_whisper@main"
   ]

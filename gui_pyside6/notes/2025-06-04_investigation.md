@@ -154,3 +154,4 @@ Implemented two usability improvements:
   the selected path is stored separately.
 - Chatterbox synthesis now splits long text into 280 character chunks using
   NLTK when available.
+
