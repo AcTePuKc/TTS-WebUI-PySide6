@@ -31,7 +31,7 @@
     "extension_vocos @ git+https://github.com/rsxdalv/extension_vocos@main"
   ],
   "kokoro": [
-    "extension_kokoro @ git+https://github.com/rsxdalv/extension_kokoro@main"
+    "kokoro-fastapi @ git+https://github.com/remsky/Kokoro-FastAPI@release"
   ],
   "chatterbox": [
     "extension_chatterbox @ git+https://github.com/rsxdalv/extension_chatterbox@main"
