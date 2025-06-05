@@ -33,6 +33,9 @@
   "kokoro": [
     "extension_kokoro_tts_api @ git+https://github.com/rsxdalv/extension_kokoro_tts_api@main"
   ],
+  "chatterbox": [
+    "extension_chatterbox @ git+https://github.com/rsxdalv/extension_chatterbox@main"
+  ],
   "whisper": [
     "extension_whisper @ git+https://github.com/rsxdalv/extension_whisper@main"
   ]

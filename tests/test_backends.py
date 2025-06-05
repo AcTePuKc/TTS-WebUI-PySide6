@@ -30,6 +30,28 @@ async def dummy_list_voices():
 edge_dummy.list_voices = dummy_list_voices
 sys.modules.setdefault("edge_tts", edge_dummy)
 
+# Dummy Kokoro module for listing voices
+kokoro_mod = types.ModuleType("extension_kokoro")
+kokoro_choices = types.ModuleType("extension_kokoro.CHOICES")
+kokoro_choices.CHOICES = {"Heart": "af_heart"}
+sys.modules.setdefault("extension_kokoro", kokoro_mod)
+sys.modules.setdefault("extension_kokoro.CHOICES", kokoro_choices)
+
+# Dummy Chatterbox module
+chatter_mod = types.ModuleType("chatterbox")
+class DummyChatterboxTTS:
+    sr = 24000
+    @classmethod
+    def from_pretrained(cls, device):
+        return cls()
+    def prepare_conditionals(self, wav, exaggeration=0.5):
+        pass
+    def generate(self, *a, **k):
+        import torch
+        yield torch.zeros(1, 10)
+chatter_mod.ChatterboxTTS = DummyChatterboxTTS
+sys.modules.setdefault("chatterbox", chatter_mod)
+
 from gui_pyside6.backend import available_backends, available_transcribers, get_mms_languages
 
 
@@ -54,6 +76,27 @@ def test_get_edge_voices_returns_list():
     voices = get_edge_voices()
     assert isinstance(voices, list)
     assert voices and isinstance(voices[0], str)
+
+
+def test_kokoro_backend_available():
+    assert "kokoro" in available_backends()
+
+
+def test_get_kokoro_voices_returns_list():
+    from gui_pyside6.backend import get_kokoro_voices
+    voices = get_kokoro_voices()
+    assert isinstance(voices, list)
+    assert voices and isinstance(voices[0], tuple) and len(voices[0]) == 2
+
+
+def test_chatterbox_backend_available():
+    assert "chatterbox" in available_backends()
+
+
+def test_get_chatterbox_voices_returns_list():
+    from gui_pyside6.backend import get_chatterbox_voices
+    voices = get_chatterbox_voices()
+    assert isinstance(voices, list)
 
 
 def test_demucs_backend_available():

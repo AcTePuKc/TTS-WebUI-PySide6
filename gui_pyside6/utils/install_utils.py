@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+import site
 from typing import Iterable
 
 VENV_DIR = Path.home() / ".hybrid_tts" / "venv"
@@ -29,6 +30,12 @@ def _is_venv_active() -> bool:
         return True
     return False
 
+def _venv_site_packages() -> Path:
+    """Return site-packages path inside the hybrid venv."""
+    if os.name == "nt":
+        return VENV_DIR / "Lib" / "site-packages"
+    return VENV_DIR / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
+
 def install_package_in_venv(package: str | Iterable[str]):
     """Install packages into the current venv if active, else into hybrid_tts venv."""
     if isinstance(package, str):
@@ -46,6 +53,12 @@ def install_package_in_venv(package: str | Iterable[str]):
         print(f"[INFO] No venv detected → using hybrid_tts venv at {VENV_DIR}")
         _ensure_venv()
         python_exe = _venv_python()
+
+    # ensure the site-packages path is importable when using the per-user venv
+    if not in_venv:
+        site_dir = _venv_site_packages()
+        if str(site_dir) not in sys.path:
+            sys.path.insert(0, str(site_dir))
 
     subprocess.run([str(python_exe), "-m", "ensurepip", "--upgrade"], check=True)
     subprocess.check_call([str(python_exe), "-m", "pip", "install", *package])
