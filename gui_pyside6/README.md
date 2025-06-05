@@ -37,6 +37,15 @@ Backend packages are defined in `backend/backend_requirements.json`. Installatio
 - Optional FastAPI server for programmatic synthesis.
 - Experimental audio reconstruction with **Vocos**.
 
+## Preferences
+
+Open **Edit → Preferences** to configure the application.
+
+- **Auto play after synthesis** – automatically play generated audio.
+- **Uninstall Backends** – remove optional TTS backends you previously installed.
+
+Your settings are stored in `~/.hybrid_tts/preferences.json`.
+
 ## Troubleshooting
 
 - On Windows, the **pyttsx3** backend may fail with `ModuleNotFoundError: No module named 'pywintypes'`.
