@@ -231,3 +231,17 @@ To make the packaged application more flexible, a dedicated **Model Manager** ta
 - A progress log so users can track installation output when running `pip` in the background.
 
 These additions would let non-technical users manage models after the app is frozen as an executable while keeping the base download small.
+
+## Follow-up 2025-06-21
+
+The new `kokoro-fastapi` package no longer exposes a `CHOICES` module for
+obtaining the list of voices. The GUI's voice dropdown stayed empty because the
+`list_voices` helper attempted to import `CHOICES.py` and failed.
+
+`kokoro_backend.list_voices` now falls back to scanning the
+`api/src/voices/v1_0` directory bundled with `kokoro_fastapi`. The function
+collects all `*.pt` files and returns the stem names so the voice selector is
+populated correctly again.
+
+Further work may be required to integrate the `kokoro-fastapi` API for audio
+generation, but listing voices is operational.
