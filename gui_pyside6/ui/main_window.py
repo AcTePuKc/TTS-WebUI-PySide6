@@ -29,7 +29,9 @@ MAX_TEXT_LENGTH = 1000
 
 
 class SynthesizeWorker(QtCore.QThread):
+
     finished = QtCore.Signal(Path, object, float)
+
 
     def __init__(self, func, text: str, output: Path, kwargs: dict):
         super().__init__()
@@ -49,6 +51,7 @@ class SynthesizeWorker(QtCore.QThread):
             elapsed = 0.0
             err = e
         self.finished.emit(self.output, err, elapsed)
+
 
 class InstallWorker(QtCore.QThread):
     finished = QtCore.Signal(str, object)
@@ -359,19 +362,31 @@ class MainWindow(QtWidgets.QMainWindow):
             self.last_output = path
             self.on_play_output()
 
+
     def on_synthesize_finished(self, output: Path, error: object, elapsed: float):
         if error:
             self.status.setText(f"Error: {error}")
             print(f"[ERROR] {error}")
         else:
-            print(f"[INFO] Output saved to {output}")
-            self.last_output = output
-            self.status.setText(f"Saved to {output} ({elapsed:.1f} sec)")
-            self.play_button.setEnabled(True)
-            self.history_list.insertItem(0, str(output))
+            output_desc = result
+            if isinstance(result, list) and result:
+                # demucs returns a list of stem paths
+                output_desc = result[0].parent
+                self.last_output = result[0]
+            elif isinstance(result, (str, Path)):
+                self.last_output = Path(result)
+            else:
+                self.last_output = None
+
+            print(f"[INFO] Output saved to {output_desc}")
+            self.status.setText(f"Saved to {output_desc}")
+            if self.last_output and self.last_output.exists():
+                self.play_button.setEnabled(True)
+            if isinstance(output_desc, Path):
+                self.history_list.insertItem(0, str(output_desc))
             if self.history_list.count() > 10:
                 self.history_list.takeItem(10)
-            if self.autoplay_check.isChecked():
+            if self.autoplay_check.isChecked() and self.last_output:
                 self.on_play_output()
         self._synth_busy = False
         self.update_synthesize_enabled()

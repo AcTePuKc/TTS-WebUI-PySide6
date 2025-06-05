@@ -36,6 +36,8 @@ Backend packages are defined in `backend/backend_requirements.json`. Installatio
 - "Play Last Output" and "Open Output Folder" buttons.
 - Optional FastAPI server for programmatic synthesis.
 - Experimental audio reconstruction with **Vocos**.
+- Music source separation with **Demucs**. Load an audio file and the backend
+  generates individual stem tracks.
 
 ## Preferences
 
@@ -63,6 +65,10 @@ Linux/macOS.
   ```bash
   pip install --force-reinstall pywin32
   ```
+
+- The **Demucs** backend requires the `ffmpeg` command and a valid audio file
+  input. Use the **Load Audio File** button before synthesizing. The generated
+  stem files appear in a new folder under `outputs/`.
 
 ## Running Tests
 
