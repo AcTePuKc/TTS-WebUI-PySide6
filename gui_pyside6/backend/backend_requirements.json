@@ -31,11 +31,7 @@
     "extension_vocos @ git+https://github.com/rsxdalv/extension_vocos@main"
   ],
   "kokoro": [
-    "extension_kokoro_tts_api @ git+https://github.com/rsxdalv/extension_kokoro_tts_api@main",
     "extension_kokoro @ git+https://github.com/rsxdalv/extension_kokoro@main"
-  ],
-  "chatterbox": [
-    "extension_chatterbox @ git+https://github.com/rsxdalv/extension_chatterbox@main"
   ],
   "chatterbox": [
     "extension_chatterbox @ git+https://github.com/rsxdalv/extension_chatterbox@main"
