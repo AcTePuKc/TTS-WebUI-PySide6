@@ -72,9 +72,9 @@ bug. Several failures were reproduced:
 - **tortoise** raised `'GPT2InferenceModel' object has no attribute 'generate'`
   indicating an outdated dependency; updating the `extension_tortoise` package
   is required but also blocked by the proxy.
-- **edge_tts** was able to synthesize using the default voice but listing
-  additional voices failed with `ClientHttpProxyError: 403` which again stems
-  from network restrictions.
+- **edge_tts** initially failed to list additional voices with
+  `ClientHttpProxyError: 403`. After updating to a newer release the backend now
+  reports the full set of voices and works without issues.
 
 These backends currently require internet access both for installation and at
 runtime. Offline testing is therefore limited.
@@ -84,10 +84,10 @@ runtime. Offline testing is therefore limited.
 With outbound network access enabled we attempted to install the optional
 backends again. Package downloads worked but `demucs` and `bark` pulled in large
 PyTorch dependencies (>1&nbsp;GB) so the install was aborted. `edge_tts`
-installed successfully into the per-user venv but listing voices still returned
-an empty list, likely because the Microsoft API is blocked. The installation
-helper now appends the hybrid venv's `site-packages` directory to `sys.path` so
-modules installed there can be imported by the main app.
+installed successfully into the per-user venv and voice listing succeeded after
+the update. The installation helper now appends the hybrid venv's
+`site-packages` directory to `sys.path` so modules installed there can be
+imported by the main app.
 
 ## UI Layout Notes (2025-06-09)
 
@@ -169,3 +169,65 @@ Implemented two usability improvements:
   `BACKEND_FEATURES` mapping in `backend/__init__.py` and updated the GUI to
   consult this table when showing or hiding controls.
 - Restored Synthesize button availability for all backends.
+## Status Update 2025-06-17
+
+The following backends are confirmed working and do not require further investigation:
+- Chatterbox
+- Pyttsx3
+- Gtts
+- edge_tts
+- mms (may need more features later)
+
+Continue focusing on unresolved backends that still fail to install or run.
+
+## Follow-up 2025-06-18
+
+Recent work focused on the **Tortoise** and **Piper** backends. The reference
+`extension_tortoise` repository exposes a `generate_tortoise` function that wraps
+`TextToSpeech.tts_with_preset`. Parameters are collected in a
+`TortoiseParameters` dataclass and include:
+
+- `voice` and `preset` (ultra_fast, fast, standard, high_quality)
+- autoregressive settings such as `temperature` and `top_p`
+- diffusion settings like `cond_free_k`
+
+A helper `generate_tortoise_long` automatically splits long prompts and yields
+`TortoiseOutputUpdate` objects containing the audio, metadata and output
+filenames. Voices are loaded with `tortoise.utils.audio.load_voices()` and can be
+placed in a local `voices-tortoise` directory. Pre-made voice packs are freely
+available from community repos on HuggingFace (e.g.
+`https://huggingface.co/jbetker/tortoise-tts`).
+
+The `extension_piper_tts` repository uses `PiperVoice.load()` and the
+`synthesize_numpy` helper to generate audio. Required parameters are
+`length_scale`, `noise_scale`, `noise_w` and `sentence_silence`. Voice models are
+stored under `data/models/piper` and can be downloaded from
+`https://huggingface.co/rhasspy/piper-voices`.
+
+The current installation of `extension_tortoise` still fails with
+`'GPT2InferenceModel' object has no attribute 'generate'`. Updating to a newer
+release should resolve this. Piper has not yet been integrated into the GUI, but
+its Python API appears straightforward once a compatible voice model is
+available.
+
+## Follow-up 2025-06-19
+
+A review of the already working backends revealed a few advanced parameters that could further improve synthesis quality:
+
+- **Chatterbox** offers `exaggeration`, `cfg_weight` and `temperature` controls. The ComfyUI integration recommends keeping `cfg_weight` around 0.3 for fast voices or raising `exaggeration` above 0.7 for dramatic speech.
+- **Pyttsx3** supports adjusting `volume` in addition to `rate` and `voice`. Volume ranges from 0 to 1 and could be exposed through the GUI.
+- **gTTS** accepts `slow=True` for a more deliberate reading pace and a `tld` parameter to select accents like `.co.uk` or `.com.au`.
+- **edge_tts** exposes `pitch` and `volume` adjustments plus optional speaking styles. Only rate is currently wired up in the GUI.
+- **MMS** allows tweaking `speaking_rate`, `noise_scale` and `noise_scale_duration`; these parameters are defined in the backend but not yet surfaced in the interface.
+
+These additions are not required for basic synthesis but may yield higher quality or more expressive results. Implementation effort is low since most knobs already exist in the backend modules.
+## UI Enhancement Ideas 2025-06-20
+
+To make the packaged application more flexible, a dedicated **Model Manager** tab could help users install or update optional TTS, voice conversion and music generation modules without leaving the GUI. Features might include:
+
+- Listing all optional backends and their install status using `missing_backend_packages()`.
+- Buttons to install, reinstall or remove each backend directly from the interface.
+- A sub-section to manage voice packs for engines like Tortoise or Piper by selecting a local folder or URL and copying the files to `voices-tortoise` or similar directories.
+- A progress log so users can track installation output when running `pip` in the background.
+
+These additions would let non-technical users manage models after the app is frozen as an executable while keeping the base download small.
