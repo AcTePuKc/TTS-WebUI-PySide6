@@ -27,6 +27,17 @@ class PreferencesDialog(QtWidgets.QDialog):
         port_row.addWidget(self.port_spin)
         layout.addLayout(port_row)
 
+        out_row = QtWidgets.QHBoxLayout()
+        out_label = QtWidgets.QLabel("Output directory")
+        self.out_edit = QtWidgets.QLineEdit()
+        self.out_edit.setText(self.prefs.get("output_dir", "outputs"))
+        out_browse = QtWidgets.QPushButton("Browse")
+        out_browse.clicked.connect(self.on_browse_output)
+        out_row.addWidget(out_label)
+        out_row.addWidget(self.out_edit)
+        out_row.addWidget(out_browse)
+        layout.addLayout(out_row)
+
         self.backend_list = QtWidgets.QListWidget()
         layout.addWidget(self.backend_list)
         self.refresh_backends()
@@ -39,6 +50,11 @@ class PreferencesDialog(QtWidgets.QDialog):
         close_btn.clicked.connect(self.accept)
         btn_row.addWidget(close_btn)
         layout.addLayout(btn_row)
+
+    def on_browse_output(self) -> None:
+        folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Output Directory", self.out_edit.text())
+        if folder:
+            self.out_edit.setText(folder)
 
     def refresh_backends(self) -> None:
         self.backend_list.clear()
@@ -59,5 +75,6 @@ class PreferencesDialog(QtWidgets.QDialog):
         return {
             "autoplay": self.autoplay_box.isChecked(),
             "api_port": self.port_spin.value(),
+            "output_dir": self.out_edit.text() or "outputs",
         }
 

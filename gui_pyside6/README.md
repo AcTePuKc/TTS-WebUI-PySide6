@@ -44,6 +44,7 @@ Backend packages are defined in `backend/backend_requirements.json`. Installatio
 Open **Edit → Preferences** to configure the application.
 
 - **Auto play after synthesis** – automatically play generated audio.
+- **Output directory** – folder where synthesized files are saved. Defaults to `outputs/`.
 - **Uninstall Backends** – remove optional TTS backends you previously installed.
 
 Your settings are stored in `~/.hybrid_tts/preferences.json`.
