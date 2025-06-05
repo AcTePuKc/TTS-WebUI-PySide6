@@ -5,10 +5,10 @@ from datetime import datetime
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
-import inspect
 
 from ..backend import (
     BACKENDS,
+    BACKEND_FEATURES,
     available_backends,
     ensure_backend_installed,
     is_backend_installed,
@@ -117,7 +117,6 @@ class MainWindow(QtWidgets.QMainWindow):
         rate_row.addWidget(self.rate_spin)
         layout.addWidget(self.rate_widget)
 
-        # Seed selector
         self.seed_widget = QtWidgets.QWidget()
         seed_row = QtWidgets.QHBoxLayout(self.seed_widget)
         seed_label = QtWidgets.QLabel("Seed (0=random):")
@@ -127,7 +126,6 @@ class MainWindow(QtWidgets.QMainWindow):
         seed_row.addWidget(seed_label)
         seed_row.addWidget(self.seed_spin)
         layout.addWidget(self.seed_widget)
-
 
         # Synthesize button
         self.button = QtWidgets.QPushButton("Synthesize")
@@ -251,9 +249,9 @@ class MainWindow(QtWidgets.QMainWindow):
         seed = self.seed_spin.value() or None
 
         func = BACKENDS[backend]
-        sig = inspect.signature(func)
+        features = BACKEND_FEATURES.get(backend, set())
         kwargs = {}
-        if "rate" in sig.parameters:
+        if "rate" in features:
             if backend == "edge_tts":
                 delta = rate - 200
                 kwargs["rate"] = f"{delta:+d}%"
@@ -267,11 +265,11 @@ class MainWindow(QtWidgets.QMainWindow):
             kwargs["exaggeration"] = self.cb_exaggeration.value()
             kwargs["cfg_weight"] = self.cb_cfg.value()
             kwargs["temperature"] = self.cb_temp.value()
-        elif "voice" in sig.parameters and voice_id:
+        elif "voice" in features and voice_id:
             kwargs["voice"] = voice_id
-        if "lang" in sig.parameters and lang_code:
+        if "lang" in features and lang_code:
             kwargs["lang"] = lang_code
-        if "seed" in sig.parameters and seed is not None:
+        if "seed" in features and seed is not None:
             kwargs["seed"] = seed
 
         print(f"[INFO] Synthesizing with {backend}...")
@@ -344,20 +342,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_backend_changed(self, backend: str):
         self.update_install_status()
+        features = BACKEND_FEATURES.get(backend, set())
+
         if not is_backend_installed(backend):
             self.voice_combo.clear()
             self.voice_combo.setEnabled(False)
-            self.voice_combo.setVisible(False)
             self.lang_combo.clear()
             self.lang_combo.setEnabled(False)
-            self.lang_combo.setVisible(False)
             self.rate_widget.setVisible(False)
             self.seed_widget.setVisible(False)
             return
-
-        func = BACKENDS[backend]
-        sig = inspect.signature(func)
-        params = set(sig.parameters)
 
         # configure voice and language lists
         if backend == "pyttsx3":
@@ -416,14 +410,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.lang_combo.clear()
                 self.lang_combo.setEnabled(False)
 
-        # final visibility based on function signature
-        self.voice_combo.setVisible("voice" in params)
-        self.lang_combo.setVisible("lang" in params)
-        self.rate_widget.setVisible("rate" in params)
-        self.seed_widget.setVisible("seed" in params)
+        # final visibility based on declared feature support
+        self.voice_combo.setVisible("voice" in features)
+        self.lang_combo.setVisible("lang" in features)
+        self.rate_widget.setVisible("rate" in features)
+        self.seed_widget.setVisible("seed" in features)
 
-        self.load_audio_button.setVisible(backend in {"demucs", "vocos"})
-        if backend not in {"demucs", "vocos"}:
+        file_based = "file" in features
+        self.load_audio_button.setVisible(file_based)
+        if not file_based:
             self.audio_file = None
             self.load_audio_button.setText("Load Audio File")
 
@@ -434,7 +429,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         snippet = text[:15]
-        if backend in {"demucs", "vocos"} and Path(text).exists():
+        features = BACKEND_FEATURES.get(backend, set())
+        if "file" in features and Path(text).exists():
             snippet = Path(text).stem[:15]
         base = create_base_filename(snippet, str(OUTPUT_DIR), backend, date)
         if backend == "demucs":
@@ -473,8 +469,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def update_synthesize_enabled(self):
         backend = self.backend_combo.currentText()
+        features = BACKEND_FEATURES.get(backend, set())
         text_present = bool(self.text_edit.toPlainText().strip())
-        if backend in {"demucs", "vocos"}:
+        if "file" in features:
             text_present = self.audio_file is not None
         backend_ready = is_backend_installed(backend)
         busy = getattr(self, "_synth_busy", False)
