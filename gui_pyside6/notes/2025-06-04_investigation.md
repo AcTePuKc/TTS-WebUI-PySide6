@@ -155,3 +155,17 @@ Implemented two usability improvements:
 - Chatterbox synthesis now splits long text into 280 character chunks using
   NLTK when available.
 
+
+## Follow-up 2025-06-15
+
+- The backend selector now hides voice, language, rate and seed controls when the chosen backend does not support them.
+- Output paths for file-based backends use the source file name instead of the full path to avoid unwieldy directories.
+- `update_synthesize_enabled` checks for a loaded audio file when required.
+
+## Follow-up 2025-06-16
+
+- Initial attempt to detect supported parameters via function signatures failed
+  because backends are wrapped in `functools.partial`. Introduced explicit
+  `BACKEND_FEATURES` mapping in `backend/__init__.py` and updated the GUI to
+  consult this table when showing or hiding controls.
+- Restored Synthesize button availability for all backends.
