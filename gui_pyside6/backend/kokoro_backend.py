@@ -48,7 +48,27 @@ def synthesize_to_file(
 def list_voices() -> list[tuple[str, str]]:
     """Return available Kokoro voice display names and identifiers."""
     try:
-        from extension_kokoro.CHOICES import CHOICES
-        return list(CHOICES.items())
+        from extension_kokoro import CHOICES as choices_mod
+        return list(getattr(choices_mod, "CHOICES", {}).items())
     except Exception:
-        return []
+        pass
+
+    try:
+        import importlib.util
+        from pathlib import Path
+        spec = importlib.util.find_spec("extension_kokoro")
+        if not spec or not spec.origin:
+            return []
+        choices_path = Path(spec.origin).parent / "CHOICES.py"
+        if not choices_path.exists():
+            return []
+        namespace: dict[str, object] = {}
+        with choices_path.open("r", encoding="utf-8") as f:
+            code = f.read()
+        exec(code, namespace)
+        choices = namespace.get("CHOICES", {})
+        if isinstance(choices, dict):
+            return list(choices.items())
+    except Exception:
+        pass
+    return []
