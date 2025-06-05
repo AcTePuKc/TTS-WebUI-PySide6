@@ -18,6 +18,8 @@ from ..backend import (
 )
 from ..utils.create_base_filename import create_base_filename
 from ..utils.open_folder import open_folder
+from ..utils.preferences import load_preferences, save_preferences
+from .preferences import PreferencesDialog
 
 OUTPUT_DIR = Path("outputs")
 MAX_TEXT_LENGTH = 1000
@@ -63,50 +65,38 @@ class InstallWorker(QtCore.QThread):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
+        self.prefs = load_preferences()
         self.setWindowTitle("PySide6 TTS Launcher")
         self.resize(400, 200)
 
         central = QtWidgets.QWidget()
         self.setCentralWidget(central)
 
-        layout = QtWidgets.QVBoxLayout(central)
+        main_layout = QtWidgets.QVBoxLayout(central)
 
-        # Text input
-        self.text_edit = QtWidgets.QPlainTextEdit()
-        self.text_edit.setPlaceholderText("Enter text to synthesize...")
-        self.text_edit.textChanged.connect(self.update_synthesize_enabled)
-        layout.addWidget(self.text_edit)
-
-        self.audio_file: str | None = None
-        # Load audio button for backends that operate on files
-        self.load_audio_button = QtWidgets.QPushButton("Load Audio File")
-        self.load_audio_button.clicked.connect(self.on_load_audio)
-        self.load_audio_button.setVisible(False)
-        layout.addWidget(self.load_audio_button)
-
-        # Backend dropdown
+        # --- Model selection row ---
+        model_row = QtWidgets.QHBoxLayout()
         self.backend_combo = QtWidgets.QComboBox()
         self.backend_combo.addItems(available_backends())
         self.backend_combo.currentTextChanged.connect(self.on_backend_changed)
         self.backend_combo.currentTextChanged.connect(self.update_synthesize_enabled)
-        layout.addWidget(self.backend_combo)
+        model_row.addWidget(self.backend_combo)
 
-        # Install backend button
         self.install_button = QtWidgets.QPushButton("Install Backend")
         self.install_button.clicked.connect(self.on_install_backend)
-        layout.addWidget(self.install_button)
+        model_row.addWidget(self.install_button)
+        main_layout.addLayout(model_row)
 
-        # Voice selector (pyttsx3 only)
+        # --- Optional selectors row ---
+        opts_row = QtWidgets.QHBoxLayout()
         self.voice_combo = QtWidgets.QComboBox()
         self.voice_combo.setEnabled(False)
-        layout.addWidget(self.voice_combo)
+        opts_row.addWidget(self.voice_combo)
 
-        # Language selector (gTTS only)
         self.lang_combo = QtWidgets.QComboBox()
         self.lang_combo.setEnabled(False)
-        layout.addWidget(self.lang_combo)
+        opts_row.addWidget(self.lang_combo)
 
-        # Speech rate selector
         self.rate_widget = QtWidgets.QWidget()
         rate_row = QtWidgets.QHBoxLayout(self.rate_widget)
         rate_label = QtWidgets.QLabel("Speech Rate:")
@@ -115,7 +105,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.rate_spin.setValue(200)
         rate_row.addWidget(rate_label)
         rate_row.addWidget(self.rate_spin)
-        layout.addWidget(self.rate_widget)
+        opts_row.addWidget(self.rate_widget)
 
         self.seed_widget = QtWidgets.QWidget()
         seed_row = QtWidgets.QHBoxLayout(self.seed_widget)
@@ -125,33 +115,67 @@ class MainWindow(QtWidgets.QMainWindow):
         self.seed_spin.setValue(0)
         seed_row.addWidget(seed_label)
         seed_row.addWidget(self.seed_spin)
-        layout.addWidget(self.seed_widget)
+        opts_row.addWidget(self.seed_widget)
+        main_layout.addLayout(opts_row)
+
+        # Text input area
+        self.text_edit = QtWidgets.QPlainTextEdit()
+        self.text_edit.setPlaceholderText("Enter text to synthesize...")
+        self.text_edit.textChanged.connect(self.update_synthesize_enabled)
+        main_layout.addWidget(self.text_edit)
+
+        self.audio_file: str | None = None
+        self.load_audio_button = QtWidgets.QPushButton("Load Audio File")
+        self.load_audio_button.clicked.connect(self.on_load_audio)
+        self.load_audio_button.setVisible(False)
+        main_layout.addWidget(self.load_audio_button)
 
         # Synthesize button
         self.button = QtWidgets.QPushButton("Synthesize")
         self.button.clicked.connect(self.on_synthesize)
-        layout.addWidget(self.button)
+        main_layout.addWidget(self.button)
 
-        # API server button
-        self.api_button = QtWidgets.QPushButton("Run API Server")
-        self.api_button.clicked.connect(self.on_api_server)
-        layout.addWidget(self.api_button)
-
-        # Open output folder button
-        self.open_button = QtWidgets.QPushButton("Open Output Folder")
-        self.open_button.clicked.connect(self.on_open_output)
-        layout.addWidget(self.open_button)
-
-        # Play output button
-        self.play_button = QtWidgets.QPushButton("Play Last Output")
+        # --- Mini player row ---
+        player_row = QtWidgets.QHBoxLayout()
+        self.play_button = QtWidgets.QPushButton("Play")
         self.play_button.clicked.connect(self.on_play_output)
         self.play_button.setEnabled(False)
-        layout.addWidget(self.play_button)
+        player_row.addWidget(self.play_button)
 
+        self.stop_button = QtWidgets.QPushButton("Stop")
+        self.stop_button.clicked.connect(self.on_stop_playback)
+        self.stop_button.setEnabled(False)
+        player_row.addWidget(self.stop_button)
+
+        self.position_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.position_slider.setRange(0, 0)
+        player_row.addWidget(self.position_slider)
+        main_layout.addLayout(player_row)
+
+        # Autoplay option
         self.autoplay_check = QtWidgets.QCheckBox("Auto play after synthesis")
-        self.autoplay_check.setChecked(True)
+        self.autoplay_check.setChecked(self.prefs.get("autoplay", True))
+        main_layout.addWidget(self.autoplay_check)
 
-        layout.addWidget(self.autoplay_check)
+        # --- Misc buttons row ---
+        misc_row = QtWidgets.QHBoxLayout()
+        self.api_button = QtWidgets.QPushButton("Run API Server")
+        self.api_button.clicked.connect(self.on_api_server)
+        misc_row.addWidget(self.api_button)
+
+        self.open_button = QtWidgets.QPushButton("Open Output Folder")
+        self.open_button.clicked.connect(self.on_open_output)
+        misc_row.addWidget(self.open_button)
+
+        self.pref_button = QtWidgets.QPushButton("Preferences")
+        self.pref_button.clicked.connect(self.on_preferences)
+        misc_row.addWidget(self.pref_button)
+        main_layout.addLayout(misc_row)
+
+        # History list
+        self.history_list = QtWidgets.QListWidget()
+        self.history_list.itemActivated.connect(self.on_history_play)
+        main_layout.addWidget(self.history_list)
 
         cb_form = QtWidgets.QFormLayout()
         self.cb_exaggeration = QtWidgets.QDoubleSpinBox()
@@ -179,13 +203,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.chatterbox_opts = QtWidgets.QGroupBox("Chatterbox Options")
         self.chatterbox_opts.setLayout(cb_form)
         self.chatterbox_opts.setVisible(False)
-        layout.addWidget(self.chatterbox_opts)
+        main_layout.addWidget(self.chatterbox_opts)
 
-        # Stop playback button
-        self.stop_button = QtWidgets.QPushButton("Stop Playback")
-        self.stop_button.clicked.connect(self.on_stop_playback)
-        self.stop_button.setEnabled(False)
-        layout.addWidget(self.stop_button)
 
         self.api_process = None
         self.last_output: Path | None = None
@@ -196,11 +215,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.player.setAudioOutput(self.audio_output)
         # Qt6 renamed the signal from stateChanged to playbackStateChanged
         self.player.playbackStateChanged.connect(self.on_player_state_changed)
+        self.player.durationChanged.connect(self.position_slider.setMaximum)
+        self.player.positionChanged.connect(self.position_slider.setValue)
+        self.position_slider.sliderMoved.connect(self.player.setPosition)
         self.cb_voice_path: str | None = None
 
         # Status label
         self.status = QtWidgets.QLabel()
-        layout.addWidget(self.status)
+        main_layout.addWidget(self.status)
 
         # Load voices for initial backend
         self.on_backend_changed(self.backend_combo.currentText())
@@ -304,6 +326,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def on_stop_playback(self):
         self.player.stop()
 
+    def on_history_play(self, item: QtWidgets.QListWidgetItem):
+        path = Path(item.text())
+        if path.exists():
+            self.last_output = path
+            self.on_play_output()
+
     def on_synthesize_finished(self, output: Path, error: object):
         if error:
             self.status.setText(f"Error: {error}")
@@ -313,6 +341,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.last_output = output
             self.status.setText(f"Saved to {output}")
             self.play_button.setEnabled(True)
+            self.history_list.insertItem(0, str(output))
+            if self.history_list.count() > 10:
+                self.history_list.takeItem(10)
             if self.autoplay_check.isChecked():
                 self.on_play_output()
         self._synth_busy = False
@@ -476,3 +507,17 @@ class MainWindow(QtWidgets.QMainWindow):
         backend_ready = is_backend_installed(backend)
         busy = getattr(self, "_synth_busy", False)
         self.button.setEnabled(text_present and backend_ready and not busy)
+
+    def on_preferences(self):
+        dlg = PreferencesDialog(self.prefs, self)
+        if dlg.exec():
+            self.prefs.update(dlg.get_preferences())
+            save_preferences(self.prefs)
+            self.autoplay_check.setChecked(self.prefs.get("autoplay", True))
+            self.update_install_status()
+
+    def closeEvent(self, event):
+        self.prefs["autoplay"] = self.autoplay_check.isChecked()
+        save_preferences(self.prefs)
+        super().closeEvent(event)
+

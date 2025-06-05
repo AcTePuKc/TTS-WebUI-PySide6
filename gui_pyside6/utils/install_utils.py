@@ -66,6 +66,7 @@ def install_package_in_venv(package: str | Iterable[str]):
 
 def uninstall_package_from_venv(package: str | Iterable[str]):
     """Uninstall packages from the current venv if active, else from hybrid_tts venv."""
+
     if isinstance(package, str):
         package = [package]
 
@@ -76,6 +77,9 @@ def uninstall_package_from_venv(package: str | Iterable[str]):
     else:
         _ensure_venv()
         python_exe = _venv_python()
+        site_dir = _venv_site_packages()
+        if str(site_dir) not in sys.path:
+            sys.path.insert(0, str(site_dir))
 
+    subprocess.run([str(python_exe), "-m", "ensurepip", "--upgrade"], check=True)
     subprocess.check_call([str(python_exe), "-m", "pip", "uninstall", "-y", *package])
-
