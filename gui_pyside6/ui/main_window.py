@@ -171,7 +171,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.audio_output = QAudioOutput()
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
-        self.player.stateChanged.connect(self.on_player_state_changed)
+        # Qt6 renamed the signal from stateChanged to playbackStateChanged
+        self.player.playbackStateChanged.connect(self.on_player_state_changed)
         self.cb_voice_path: str | None = None
 
         # Status label
