@@ -34,3 +34,7 @@ The package exposes its modules under generic names like `inference` and
 `services` so `importlib.util.find_spec("kokoro_fastapi")` failed.  Installation
 checks now rely on `importlib.metadata.distribution` to detect the presence of
 the distribution regardless of module layout.
+
+### Follow-up 4
+
+Importing `extension_kokoro.main` still pulled in Gradio modules, causing a `No module named "gradio_iconbutton"` error during synthesis. The backend now implements its own Kokoro wrapper using the public `kokoro` library so no Gradio components are imported.

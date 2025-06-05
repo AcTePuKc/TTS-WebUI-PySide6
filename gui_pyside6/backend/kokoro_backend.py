@@ -4,6 +4,40 @@ from pathlib import Path
 import site
 
 
+_MODELS: dict[tuple[str, bool], object] = {}
+_PIPELINES: dict[str, object] = {}
+_VOICES: dict[str, object] = {}
+
+
+def _get_model(model_name: str, use_gpu: bool):
+    from kokoro import KModel
+    import torch
+
+    gpu = bool(use_gpu and torch.cuda.is_available())
+    key = (model_name, gpu)
+    if key not in _MODELS:
+        from kokoro import model as kokoro_model
+        kokoro_model.KModel.REPO_ID = model_name
+        model = KModel().to("cuda" if gpu else "cpu").eval()
+        _MODELS[key] = model
+    return _MODELS[key]
+
+
+def _get_pipeline(lang_code: str):
+    from kokoro import KPipeline
+
+    if lang_code not in _PIPELINES:
+        _PIPELINES[lang_code] = KPipeline(lang_code=lang_code, model=False)
+    return _PIPELINES[lang_code]
+
+
+def _get_voice(voice_name: str):
+    if voice_name not in _VOICES:
+        pipeline = _get_pipeline(voice_name[0])
+        _VOICES[voice_name] = pipeline.load_voice(voice_name)
+    return _VOICES[voice_name]
+
+
 def synthesize_to_file(
     text: str,
     output_path: Path,
@@ -15,7 +49,6 @@ def synthesize_to_file(
     seed: int | None = None,
 ) -> Path:
     """Synthesize speech using the Kokoro TTS library."""
-    from extension_kokoro.main import tts
     import torch
     import soundfile as sf
     import random
@@ -28,22 +61,19 @@ def synthesize_to_file(
     if use_gpu is None:
         use_gpu = torch.cuda.is_available()
 
-    result = tts(
-        text=text,
-        voice=voice,
-        speed=speed,
-        use_gpu=use_gpu,
-        model_name=model_name,
-    )
-    audio_out = result.get("audio_out")
-    if not audio_out:
-        raise RuntimeError("Kokoro TTS did not return audio")
-    sample_rate, audio = audio_out
+    model = _get_model(model_name, use_gpu)
+    pipeline = _get_pipeline(voice[0])
+    pack = _get_voice(voice)
 
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    sf.write(str(output_path), audio, sample_rate)
-    return output_path
+    for _, ps, _ in pipeline(text, voice, speed):
+        ref_s = pack[len(ps) - 1]
+        audio = model(ps, ref_s, speed)
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        sf.write(str(output_path), audio.cpu().numpy(), 24000)
+        return output_path
+
+    raise RuntimeError("Kokoro TTS did not return audio")
 
 
 def list_voices() -> list[tuple[str, str]]:
