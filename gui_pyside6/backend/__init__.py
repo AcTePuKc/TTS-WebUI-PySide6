@@ -8,7 +8,12 @@ import json
 import sys
 from pathlib import Path
 
-from ..utils.install_utils import install_package_in_venv
+from datetime import datetime
+
+from ..utils.install_utils import (
+    install_package_in_venv,
+    uninstall_package_from_venv,
+)
 
 def _call_backend(module: str, func: str, *args, **kwargs):
     """Import the given backend module on demand and run the requested function."""
@@ -45,6 +50,8 @@ BACKEND_FEATURES: dict[str, set[str]] = {
     "kokoro": {"voice", "rate", "seed"},
     "chatterbox": {"voice", "seed"},
 }
+
+_LOG_DIR = Path.home() / ".hybrid_tts"
 
 def get_edge_voices(locale: str | None = None) -> list[str]:
     """Return list of available Edge TTS voices."""
@@ -142,3 +149,20 @@ def ensure_backend_installed(name: str) -> None:
     missing = missing_backend_packages(name)
     if missing:
         install_package_in_venv(missing)
+        _log_action("install", name, missing)
+
+
+def uninstall_backend(name: str) -> None:
+    """Uninstall packages for the given backend if present."""
+    packages = _get_backend_packages(name)
+    if packages:
+        uninstall_package_from_venv([_get_distribution_name(p) for p in packages])
+        _log_action("uninstall", name, packages)
+
+
+def _log_action(action: str, name: str, packages: list[str]) -> None:
+    _LOG_DIR.mkdir(exist_ok=True)
+    log_file = _LOG_DIR / "install.log"
+    with log_file.open("a", encoding="utf-8") as f:
+        f.write(f"{datetime.now().isoformat()} {action} {name}: {', '.join(packages)}\n")
+
