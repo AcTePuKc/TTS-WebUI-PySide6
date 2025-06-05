@@ -378,18 +378,19 @@ class MainWindow(QtWidgets.QMainWindow):
             self.on_play_output()
 
 
-    def on_synthesize_finished(self, result: object, error: object, elapsed: float):
+    def on_synthesize_finished(self, output: object, error: object, elapsed: float):
         if error:
             self.status.setText(f"Error: {error}")
             print(f"[ERROR] {error}")
         else:
-            output_desc = result
-            if isinstance(result, list) and result:
+            output_desc = output
+            if isinstance(output, list) and output:
                 # demucs returns a list of stem paths
-                output_desc = result[0].parent
-                self.last_output = Path(result[0])
-            elif isinstance(result, (str, Path)):
-                self.last_output = Path(result)
+                first = Path(output[0])
+                output_desc = first.parent
+                self.last_output = first
+            elif isinstance(output, (str, Path)):
+                self.last_output = Path(output)
             else:
                 self.last_output = None
 
