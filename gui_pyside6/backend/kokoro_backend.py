@@ -65,15 +65,20 @@ def synthesize_to_file(
     pipeline = _get_pipeline(voice[0])
     pack = _get_voice(voice)
 
+    audio_parts = []
     for _, ps, _ in pipeline(text, voice, speed):
         ref_s = pack[len(ps) - 1]
         audio = model(ps, ref_s, speed)
-        output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        sf.write(str(output_path), audio.cpu().numpy(), 24000)
-        return output_path
+        audio_parts.append(audio.cpu())
 
-    raise RuntimeError("Kokoro TTS did not return audio")
+    if not audio_parts:
+        raise RuntimeError("Kokoro TTS did not return audio")
+
+    audio = torch.cat(audio_parts, dim=1).squeeze().numpy()
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    sf.write(str(output_path), audio, 24000)
+    return output_path
 
 
 def list_voices() -> list[tuple[str, str]]:
