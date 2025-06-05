@@ -28,6 +28,23 @@ BACKENDS = {
     "chatterbox": functools.partial(_call_backend, "chatterbox_backend", "synthesize_to_file"),
 }
 
+# Explicit feature flags describing which optional parameters each backend
+# understands. These are used by the PySide6 GUI to show or hide UI controls.
+# Keys correspond to backend names, values are sets containing any of
+# "voice", "lang", "rate", "seed" and "file".
+BACKEND_FEATURES: dict[str, set[str]] = {
+    "pyttsx3": {"voice", "lang", "rate"},
+    "gtts": {"lang"},
+    "bark": {"voice"},
+    "tortoise": {"voice"},
+    "edge_tts": {"voice", "rate"},
+    "demucs": {"file"},
+    "mms": {"lang"},
+    "vocos": {"file"},
+    "kokoro": {"voice", "rate", "seed"},
+    "chatterbox": {"voice", "seed"},
+}
+
 def get_edge_voices(locale: str | None = None) -> list[str]:
     """Return list of available Edge TTS voices."""
     if "edge_tts" not in sys.modules:
