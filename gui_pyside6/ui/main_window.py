@@ -308,11 +308,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.api_button.setEnabled(False)
         if self.api_process is None:
             ensure_backend_installed("api_server")
+            port = self.prefs.get("api_port", 8000)
             self.api_process = subprocess.Popen(
-                [sys.executable, "-m", "gui_pyside6.backend.api_server"]
+                [
+                    sys.executable,
+                    "-m",
+                    "gui_pyside6.backend.api_server",
+                    "--port",
+                    str(port),
+                ]
             )
             self.api_button.setText("Stop API Server")
-            self.status.setText("API server started at http://127.0.0.1:8000")
+            self.status.setText(f"API server started at http://127.0.0.1:{port}")
         else:
             self.api_process.terminate()
             self.api_process.wait()
@@ -322,7 +329,8 @@ class MainWindow(QtWidgets.QMainWindow):
         QtCore.QTimer.singleShot(1000, lambda: self.api_button.setEnabled(True))
 
     def on_open_api(self):
-        webbrowser.open("http://127.0.0.1:8000/docs")
+        port = self.prefs.get("api_port", 8000)
+        webbrowser.open(f"http://localhost:{port}/docs")
 
     def on_open_output(self):
         folder = self.last_output.parent if self.last_output else OUTPUT_DIR

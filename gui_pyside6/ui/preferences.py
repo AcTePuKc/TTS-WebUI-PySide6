@@ -18,6 +18,15 @@ class PreferencesDialog(QtWidgets.QDialog):
         self.autoplay_box.setChecked(self.prefs.get("autoplay", True))
         layout.addWidget(self.autoplay_box)
 
+        port_row = QtWidgets.QHBoxLayout()
+        port_label = QtWidgets.QLabel("API server port")
+        self.port_spin = QtWidgets.QSpinBox()
+        self.port_spin.setRange(1, 65535)
+        self.port_spin.setValue(self.prefs.get("api_port", 8000))
+        port_row.addWidget(port_label)
+        port_row.addWidget(self.port_spin)
+        layout.addLayout(port_row)
+
         self.backend_list = QtWidgets.QListWidget()
         layout.addWidget(self.backend_list)
         self.refresh_backends()
@@ -47,5 +56,8 @@ class PreferencesDialog(QtWidgets.QDialog):
         self.refresh_backends()
 
     def get_preferences(self) -> dict:
-        return {"autoplay": self.autoplay_box.isChecked()}
+        return {
+            "autoplay": self.autoplay_box.isChecked(),
+            "api_port": self.port_spin.value(),
+        }
 
