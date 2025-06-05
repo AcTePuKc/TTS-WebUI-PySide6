@@ -57,18 +57,29 @@ def list_voices() -> list[tuple[str, str]]:
         import importlib.util
         from pathlib import Path
         spec = importlib.util.find_spec("extension_kokoro")
-        if not spec or not spec.origin:
-            return []
-        choices_path = Path(spec.origin).parent / "CHOICES.py"
-        if not choices_path.exists():
-            return []
-        namespace: dict[str, object] = {}
-        with choices_path.open("r", encoding="utf-8") as f:
-            code = f.read()
-        exec(code, namespace)
-        choices = namespace.get("CHOICES", {})
-        if isinstance(choices, dict):
-            return list(choices.items())
+        if spec and spec.origin:
+            choices_path = Path(spec.origin).parent / "CHOICES.py"
+            if choices_path.exists():
+                namespace: dict[str, object] = {}
+                with choices_path.open("r", encoding="utf-8") as f:
+                    code = f.read()
+                exec(code, namespace)
+                choices = namespace.get("CHOICES", {})
+                if isinstance(choices, dict):
+                    return list(choices.items())
+    except Exception:
+        pass
+
+    # Kokoro-FastAPI packages voice models under api/src/voices/v1_0
+    try:
+        import importlib.util
+        spec = importlib.util.find_spec("kokoro_fastapi")
+        if spec and spec.origin:
+            base = Path(spec.origin).parent
+            voice_dir = base / "api" / "src" / "voices" / "v1_0"
+            if voice_dir.exists():
+                voices = [p.stem for p in voice_dir.glob("*.pt")]
+                return [(v, v) for v in sorted(voices)]
     except Exception:
         pass
     return []
