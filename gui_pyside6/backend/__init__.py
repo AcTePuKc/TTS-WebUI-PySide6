@@ -92,6 +92,11 @@ TOOL_BACKENDS = ["demucs", "vocos", "whisper"]
 EXPERIMENTAL_BACKENDS = ["bark", "tortoise"]
 
 _LOG_DIR = Path.home() / ".hybrid_tts"
+_INSTALL_LOG = _LOG_DIR / "install.log"
+
+# Backends that have been installed previously according to the install log or
+# current environment.  Populated at import time by ``load_persisted_installs``.
+_INSTALLED_BACKENDS: set[str] = set()
 
 def get_edge_voices(locale: str | None = None) -> list[str]:
     """Return list of available Edge TTS voices."""
@@ -129,6 +134,33 @@ def available_transcribers():
 
 def available_backends():
     return list(BACKENDS.keys())
+
+
+def load_persisted_installs() -> None:
+    """Populate ``_INSTALLED_BACKENDS`` from the install log and environment."""
+    names: set[str] = set()
+    if _INSTALL_LOG.exists():
+        for line in _INSTALL_LOG.read_text().splitlines():
+            parts = line.split()
+            if len(parts) >= 3:
+                action, backend = parts[1], parts[2].rstrip(":")
+                if action == "install":
+                    names.add(backend)
+                elif action == "uninstall":
+                    names.discard(backend)
+
+    # Also mark any backends whose packages are already available
+    for backend in BACKENDS:
+        if backend not in names and not missing_backend_packages(backend):
+            names.add(backend)
+
+    global _INSTALLED_BACKENDS
+    _INSTALLED_BACKENDS = names
+
+
+def backend_was_installed(name: str) -> bool:
+    """Return True if the backend appears in the persisted install log."""
+    return name in _INSTALLED_BACKENDS
 
 
 _REQ_FILE = Path(__file__).with_name("backend_requirements.json")
@@ -202,6 +234,8 @@ def ensure_backend_installed(name: str) -> None:
     missing = missing_backend_packages(name)
     if missing:
         install_package_in_venv(missing)
+        _log_action("install", name, missing)
+        _INSTALLED_BACKENDS.add(name)
 
 def uninstall_backend(name: str) -> None:
     """Uninstall packages for the given backend if present."""
@@ -232,6 +266,7 @@ def uninstall_backend(name: str) -> None:
     if uninstall_list:
         uninstall_package_from_venv(uninstall_list)
         _log_action("uninstall", name, [p for p in packages if _get_distribution_name(p) in uninstall_list])
+        _INSTALLED_BACKENDS.discard(name)
 
     if skipped:
         _log_action("skip_uninstall", name, skipped)
@@ -239,6 +274,9 @@ def uninstall_backend(name: str) -> None:
 
 def _log_action(action: str, name: str, packages: list[str]) -> None:
     _LOG_DIR.mkdir(exist_ok=True)
-    log_file = _LOG_DIR / "install.log"
-    with log_file.open("a", encoding="utf-8") as f:
+    with _INSTALL_LOG.open("a", encoding="utf-8") as f:
         f.write(f"{datetime.now().isoformat()} {action} {name}: {', '.join(packages)}\n")
+
+
+# Initialize installed backend set on import
+load_persisted_installs()

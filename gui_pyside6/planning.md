@@ -36,4 +36,6 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Ensure pip is available when installing optional backends by invoking
   `python -m ensurepip` before `pip install`. Also fix backend import errors by
   explicitly importing `importlib.util`.
+- Persist optional backend install status in `~/.hybrid_tts/install.log` and load
+  it on startup so the UI remembers previously installed backends.
 

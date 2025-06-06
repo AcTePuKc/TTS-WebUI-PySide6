@@ -14,7 +14,13 @@ gtts_dummy = type(sys)("gtts")
 gtts_dummy.gTTS = lambda *a, **k: None
 sys.modules.setdefault("gtts", gtts_dummy)
 
-from gui_pyside6.backend import ensure_backend_installed, is_backend_installed, uninstall_backend
+from gui_pyside6.backend import (
+    ensure_backend_installed,
+    is_backend_installed,
+    uninstall_backend,
+    backend_was_installed,
+    load_persisted_installs,
+)
 import importlib.metadata
 
 
@@ -74,3 +80,20 @@ def test_uninstall_skips_shared_dependencies(tmp_path):
                 uninstall_backend('backend_a')
                 uninstall.assert_called_once_with(['only_a'])
                 log.assert_any_call('skip_uninstall', 'backend_a', ['foo==1'])
+
+
+def test_install_logged_and_persisted(tmp_path):
+    log_dir = tmp_path
+    log_file = log_dir / 'install.log'
+    with mock.patch('gui_pyside6.backend._LOG_DIR', log_dir), \
+         mock.patch('gui_pyside6.backend._INSTALL_LOG', log_file), \
+         mock.patch('gui_pyside6.backend._get_backend_packages', return_value=['foo==1']), \
+         mock.patch('importlib.metadata.distribution', side_effect=importlib.metadata.PackageNotFoundError), \
+         mock.patch('gui_pyside6.backend.install_package_in_venv') as install:
+        from gui_pyside6 import backend
+        backend._INSTALLED_BACKENDS.clear()
+        ensure_backend_installed('dummy')
+        install.assert_called_once()
+        assert log_file.exists()
+        backend.load_persisted_installs()
+        assert backend_was_installed('dummy')
