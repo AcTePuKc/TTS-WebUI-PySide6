@@ -16,6 +16,7 @@ from ..backend import (
     TTS_BACKENDS,
     TOOL_BACKENDS,
     EXPERIMENTAL_BACKENDS,
+    TRANSCRIBERS,
     ensure_backend_installed,
     is_backend_installed,
     get_gtts_languages,
@@ -567,15 +568,23 @@ class MainWindow(QtWidgets.QMainWindow):
                     return
 
 
-        self._synth_busy = True
-        self.update_synthesize_enabled()
         output = self._generate_output_path(text, backend)
         rate = self.rate_spin.value()
         voice_id = self.voice_combo.currentData()
         lang_code = self.lang_combo.currentData()
         seed = self.seed_spin.value() or None
 
-        func = BACKENDS[backend]
+        lookup = TRANSCRIBERS if backend == "whisper" else BACKENDS
+        if backend not in lookup:
+            if hasattr(self.status, "setText"):
+                self.status.setText(f"Unknown backend: {backend}")
+            self._synth_busy = False
+            self.update_synthesize_enabled()
+            return
+
+        func = lookup[backend]
+        self._synth_busy = True
+        self.update_synthesize_enabled()
         features = BACKEND_FEATURES.get(backend, set())
         kwargs = {}
         if "rate" in features:
@@ -783,6 +792,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.on_backend_changed(self.backend_combo.currentText())
 
     def on_backend_changed(self, backend: str):
+        if hasattr(self.button, "setText"):
+            self.button.setText("Transcribe" if backend in TRANSCRIBERS else "Synthesize")
         if hasattr(self.status, "setText"):
             self.status.setText(BACKEND_INFO.get(backend, ""))
         self.update_install_status()
