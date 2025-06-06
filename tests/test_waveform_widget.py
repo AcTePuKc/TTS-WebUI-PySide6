@@ -52,7 +52,7 @@ class DummyQUrl:
     def fromLocalFile(p):
         return p
 qtcore_mod.QUrl = DummyQUrl
-qtcore_mod.Qt = types.SimpleNamespace(AlignCenter=0, Horizontal=0, UserRole=0)
+qtcore_mod.Qt = types.SimpleNamespace(AlignCenter=0, Horizontal=0, Vertical=1, UserRole=0)
 
 class DummyLabel:
     def __init__(self, *a, **k):
@@ -77,7 +77,22 @@ class DummyQTabWidget:
     def addTab(self, *a, **k):
         pass
 qtwidgets_mod.QTabWidget = DummyQTabWidget
-qtwidgets_mod.QSlider = Dummy
+class DummyQSlider:
+    def __init__(self, orientation=0):
+        self._orientation = orientation
+        self.valueChanged = DummySignal()
+        self._value = 0
+    def setRange(self, *a, **k):
+        pass
+    def setValue(self, v, *a, **k):
+        self._value = v
+    def value(self):
+        return self._value
+    def setFixedHeight(self, *a, **k):
+        pass
+    def orientation(self):
+        return self._orientation
+qtwidgets_mod.QSlider = DummyQSlider
 qtwidgets_mod.QPushButton = Dummy
 qtwidgets_mod.QCheckBox = Dummy
 qtwidgets_mod.QListWidget = Dummy
@@ -122,7 +137,7 @@ sys.modules['PySide6.QtMultimedia'] = qtmultimedia_mod
 import importlib
 import gui_pyside6.ui.main_window as main_window
 importlib.reload(main_window)
-from gui_pyside6.ui.main_window import WaveformWidget
+from gui_pyside6.ui.main_window import WaveformWidget, MainWindow
 
 
 def test_waveform_widget_sets_pixmap():
@@ -130,3 +145,8 @@ def test_waveform_widget_sets_pixmap():
     data = np.zeros(100)
     w.set_audio_array(data)
     assert w.pixmap == 'pixmap'
+
+
+def test_volume_slider_orientation_vertical():
+    window = MainWindow()
+    assert window.volume_slider.orientation() == main_window.QtCore.Qt.Vertical
