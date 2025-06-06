@@ -8,7 +8,7 @@ matplotlib.use("agg")
 
 
 def plot_waveform(audio_array: np.ndarray):
-    fig = plt.figure(figsize=(6, 2))
+    fig = plt.figure(figsize=(8, 2.5))
     plt.style.use("dark_background")
     plt.plot(audio_array, color="orange")
     plt.axis("off")

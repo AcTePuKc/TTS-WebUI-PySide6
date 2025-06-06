@@ -91,9 +91,7 @@ class WaveformWidget(LabelBase):
         if hasattr(self, "setAlignment"):
             self.setAlignment(QtCore.Qt.AlignCenter)
         if hasattr(self, "setScaledContents"):
-            self.setScaledContents(False)
-        if hasattr(self, "setMaximumHeight"):
-            self.setMaximumHeight(120)
+            self.setScaledContents(True)
         self._pixmap_orig = None
         self._playback_ratio = 0.0
 
