@@ -41,6 +41,16 @@ def test_is_backend_installed_false():
         assert not is_backend_installed('pyttsx3')
 
 
+def test_kokoro_fastapi_is_recognized():
+    def fake_distribution(name):
+        if name == 'kokoro-fastapi':
+            return object()
+        raise importlib.metadata.PackageNotFoundError
+
+    with mock.patch('importlib.metadata.distribution', side_effect=fake_distribution):
+        assert is_backend_installed('kokoro')
+
+
 def test_uninstall_backend_passes_distribution_names():
     with mock.patch('gui_pyside6.backend._get_backend_packages', return_value=['foo==1', 'bar @ git+https://x']):
         with mock.patch('gui_pyside6.backend.uninstall_package_from_venv') as uninstall:

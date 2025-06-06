@@ -172,6 +172,19 @@ def get_mms_languages() -> list[tuple[str, str]]:
         return [("English", "eng")]
 
 def missing_backend_packages(name: str) -> list[str]:
+    """Return a list of required packages that are not currently installed."""
+
+    # The Kokoro backend can be satisfied by either the ``kokoro`` or
+    # ``kokoro-fastapi`` distribution.  Treat the backend as installed if either
+    # package is present.
+    if name == "kokoro":
+        for candidate in ("kokoro", "kokoro-fastapi"):
+            try:
+                metadata.distribution(candidate)
+                return []
+            except metadata.PackageNotFoundError:
+                continue
+
     missing = []
     for pkg in _get_backend_packages(name):
         dist_name = _get_distribution_name(pkg)
