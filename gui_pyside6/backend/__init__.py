@@ -52,6 +52,21 @@ BACKEND_FEATURES: dict[str, set[str]] = {
     "whisper": {"file"},
 }
 
+# Short descriptions for each backend shown in the UI
+BACKEND_INFO: dict[str, str] = {
+    "pyttsx3": "Offline TTS engine using system voices.",
+    "gtts": "Google Text-to-Speech (online).",
+    "bark": "Suno Bark generative TTS (experimental).",
+    "tortoise": "Tortoise high quality TTS (experimental).",
+    "edge_tts": "Microsoft Edge cloud voices.",
+    "demucs": "Split audio into vocal/instrument stems.",
+    "mms": "Meta multilingual speech synthesis.",
+    "vocos": "Neural codec audio reconstruction tool.",
+    "kokoro": "Kokoro TTS with voice presets.",
+    "chatterbox": "Voice cloning from prompts.",
+    "whisper": "OpenAI Whisper speech-to-text.",
+}
+
 _LOG_DIR = Path.home() / ".hybrid_tts"
 
 def get_edge_voices(locale: str | None = None) -> list[str]:
