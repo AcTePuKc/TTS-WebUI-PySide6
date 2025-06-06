@@ -143,7 +143,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # --- Backend selection tabs ---
         model_row = QtWidgets.QHBoxLayout()
         self.tabs = QtWidgets.QTabWidget()
-        safe_connect(self.tabs.currentChanged, self.on_tab_changed)
 
         tts_tab = QtWidgets.QWidget()
         tts_layout = QtWidgets.QVBoxLayout(tts_tab)
@@ -177,6 +176,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.install_button = QtWidgets.QPushButton("Install Backend")
         safe_connect(self.install_button.clicked, self.on_install_backend)
         model_row.addWidget(self.install_button)
+        safe_connect(self.tabs.currentChanged, self.on_tab_changed)
         main_layout.addLayout(model_row)
 
         self.backend_combo = self.tts_combo
@@ -335,7 +335,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Load voices for initial backend
         self.on_backend_changed(self.backend_combo.currentText())
-        self.update_install_status()
         self.update_synthesize_enabled()
 
     def on_synthesize(self):
