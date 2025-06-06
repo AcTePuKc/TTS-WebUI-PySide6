@@ -177,8 +177,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("PySide6 TTS Launcher")
         self.resize(400, 200)
 
-        central = QtWidgets.QWidget()
-        self.setCentralWidget(central)
+        if hasattr(QtWidgets, "QScrollArea"):
+            scroll = QtWidgets.QScrollArea()
+            scroll.setWidgetResizable(True)
+            self.setCentralWidget(scroll)
+
+            central = QtWidgets.QWidget()
+            scroll.setWidget(central)
+        else:
+            central = QtWidgets.QWidget()
+            self.setCentralWidget(central)
 
         main_layout = QtWidgets.QVBoxLayout(central)
 
