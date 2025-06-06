@@ -40,7 +40,7 @@ class SynthesizeWorker(QtCore.QThread):
     finished = QtCore.Signal(object, object, float)
 
 
-    def __init__(self, func, text: str, output: Path, kwargs: dict):
+    def __init__(self, func, text: str, output: Path | None, kwargs: dict):
         super().__init__()
         self.func = func
         self.text = text
@@ -51,7 +51,10 @@ class SynthesizeWorker(QtCore.QThread):
         try:
             start = time.time()
             with Timer():
-                result = self.func(self.text, self.output, **self.kwargs)
+                if self.output is not None:
+                    result = self.func(self.text, self.output, **self.kwargs)
+                else:
+                    result = self.func(self.text, **self.kwargs)
             elapsed = time.time() - start
             err = None
         except Exception as e:
@@ -573,12 +576,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
         output = self._generate_output_path(text, backend)
+        if backend in TRANSCRIBERS:
+            output = None
         rate = self.rate_spin.value()
         voice_id = self.voice_combo.currentData()
         lang_code = self.lang_combo.currentData()
         seed = self.seed_spin.value() or None
 
-        lookup = TRANSCRIBERS if backend == "whisper" else BACKENDS
+        lookup = TRANSCRIBERS if backend in TRANSCRIBERS else BACKENDS
         if backend not in lookup:
             if hasattr(self.status, "setText"):
                 self.status.setText(f"Unknown backend: {backend}")
