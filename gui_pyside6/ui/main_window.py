@@ -436,10 +436,13 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 output_desc = output
                 if isinstance(output, list) and output:
-                    # demucs returns a list of stem paths
-                    first = Path(output[0])
-                    output_desc = first.parent
-                    self.last_output = first
+                    # demucs and future tools may return a list of file paths
+                    if all(isinstance(p, (str, Path)) for p in output):
+                        first = Path(output[0])
+                        output_desc = first.parent
+                        self.last_output = first
+                    else:
+                        self.last_output = None
                 elif isinstance(output, (str, Path)):
                     self.last_output = Path(output)
                 else:
