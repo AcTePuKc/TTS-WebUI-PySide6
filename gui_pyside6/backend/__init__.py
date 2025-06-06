@@ -67,6 +67,21 @@ BACKEND_INFO: dict[str, str] = {
     "whisper": "OpenAI Whisper speech-to-text.",
 }
 
+# Categorize backends for the PySide6 UI. Stable text-to-speech engines are
+# listed separately from audio tools and experimental components.
+TTS_BACKENDS = [
+    "pyttsx3",
+    "gtts",
+    "edge_tts",
+    "mms",
+    "kokoro",
+    "chatterbox",
+]
+
+TOOL_BACKENDS = ["demucs", "vocos", "whisper"]
+
+EXPERIMENTAL_BACKENDS = ["bark", "tortoise"]
+
 _LOG_DIR = Path.home() / ".hybrid_tts"
 
 def get_edge_voices(locale: str | None = None) -> list[str]:
