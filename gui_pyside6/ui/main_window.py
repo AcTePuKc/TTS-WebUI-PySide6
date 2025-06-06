@@ -736,6 +736,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 transcript = output
                 self.transcript_view.setPlainText(transcript)
                 self.transcript_view.setVisible(True)
+                # ensure the group box is shown when text output is returned
+                self.transcript_group.setVisible(True)
                 if hasattr(self.status, "setText"):
                     self.status.setText("Transcription complete")
                 summary = transcript[:30].replace("\n", " ")
