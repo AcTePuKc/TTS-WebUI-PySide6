@@ -39,8 +39,11 @@ def separate_audio(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     f = AudioFile(audio_path)
-    wav = f.read(streams=0, samplerate=model.samplerate)
-    wav = wav.mean(0)
+    wav = f.read(
+        streams=0,
+        samplerate=model.samplerate,
+        channels=model.audio_channels,
+    )
     sources = apply_model(model, wav[None], device=device)[0]
 
     stems = []
