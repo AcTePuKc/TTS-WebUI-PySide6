@@ -57,7 +57,26 @@ qtwidgets_mod.QListWidget = DummyListWidget
 qtwidgets_mod.QListWidgetItem = Dummy
 qtwidgets_mod.QPushButton = Dummy
 qtwidgets_mod.QCheckBox = Dummy
-qtwidgets_mod.QPlainTextEdit = Dummy
+
+class DummyPlainTextEdit:
+    def __init__(self, *a, **k):
+        self.textChanged = DummySignal()
+        self.text = ""
+        self.visible = True
+    def setPlaceholderText(self, *a, **k):
+        pass
+    def setPlainText(self, t):
+        self.text = t
+    def toPlainText(self):
+        return self.text
+    def setReadOnly(self, *a, **k):
+        pass
+    def setVisible(self, v):
+        self.visible = v
+    def isVisible(self):
+        return self.visible
+
+qtwidgets_mod.QPlainTextEdit = DummyPlainTextEdit
 qtwidgets_mod.QComboBox = Dummy
 qtwidgets_mod.QHBoxLayout = Dummy
 qtwidgets_mod.QVBoxLayout = Dummy
@@ -103,3 +122,24 @@ def test_history_list_populated(tmp_path):
 
     assert window.last_output == out_path
     assert window.history_list.items[0] == str(out_path)
+
+
+def test_transcription_results_displayed(tmp_path):
+    prefs.PREF_FILE = tmp_path / 'prefs.json'
+    prefs.save_preferences({})
+
+    import importlib
+    import gui_pyside6.ui.main_window as main_window
+    importlib.reload(main_window)
+
+    main_window.is_backend_installed = lambda name: True
+
+    window = main_window.MainWindow()
+    window.autoplay_check = types.SimpleNamespace(isChecked=lambda: False)
+
+    window.on_synthesize_finished("hello world", None, 0.0)
+
+    assert window.last_output is None
+    assert window.transcript_view.toPlainText() == "hello world"
+    assert window.transcript_view.isVisible()
+    assert window.history_list.items[0].startswith("Transcribed:")

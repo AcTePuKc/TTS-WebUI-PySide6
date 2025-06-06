@@ -189,6 +189,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.load_audio_button.setVisible(False)
         main_layout.addWidget(self.load_audio_button)
 
+        # Display area for transcription results
+        self.transcript_view = QtWidgets.QPlainTextEdit()
+        self.transcript_view.setReadOnly(True)
+        self.transcript_view.setPlaceholderText("Transcription output...")
+        self.transcript_view.setVisible(False)
+        main_layout.addWidget(self.transcript_view)
+
         # Synthesize button
         self.button = QtWidgets.QPushButton("Synthesize")
         self.button.clicked.connect(self.on_synthesize)
@@ -416,27 +423,38 @@ class MainWindow(QtWidgets.QMainWindow):
             self.status.setText(f"Error: {error}")
             print(f"[ERROR] {error}")
         else:
-            output_desc = output
-            if isinstance(output, list) and output:
-                # demucs returns a list of stem paths
-                first = Path(output[0])
-                output_desc = first.parent
-                self.last_output = first
-            elif isinstance(output, (str, Path)):
-                self.last_output = Path(output)
-            else:
+            self.transcript_view.setVisible(False)
+            if isinstance(output, str) and not Path(output).exists():
+                transcript = output
+                self.transcript_view.setPlainText(transcript)
+                self.transcript_view.setVisible(True)
+                self.status.setText("Transcription complete")
+                summary = transcript[:30].replace("\n", " ")
+                self.history_list.insertItem(0, f"Transcribed: {summary}")
+                output_desc = transcript
                 self.last_output = None
+            else:
+                output_desc = output
+                if isinstance(output, list) and output:
+                    # demucs returns a list of stem paths
+                    first = Path(output[0])
+                    output_desc = first.parent
+                    self.last_output = first
+                elif isinstance(output, (str, Path)):
+                    self.last_output = Path(output)
+                else:
+                    self.last_output = None
 
-            print(f"[INFO] Output saved to {output_desc}")
-            self.status.setText(f"Saved to {output_desc}")
-            if self.last_output and self.last_output.exists():
-                self.play_button.setEnabled(True)
-            if isinstance(output_desc, Path):
-                self.history_list.insertItem(0, str(output_desc))
+                print(f"[INFO] Output saved to {output_desc}")
+                self.status.setText(f"Saved to {output_desc}")
+                if self.last_output and self.last_output.exists():
+                    self.play_button.setEnabled(True)
+                if isinstance(output_desc, Path):
+                    self.history_list.insertItem(0, str(output_desc))
+                if self.autoplay_check.isChecked() and self.last_output:
+                    self.on_play_output()
             if self.history_list.count() > 10:
                 self.history_list.takeItem(10)
-            if self.autoplay_check.isChecked() and self.last_output:
-                self.on_play_output()
         self._synth_busy = False
         self.update_synthesize_enabled()
 
