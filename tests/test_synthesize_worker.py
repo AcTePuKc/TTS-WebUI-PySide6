@@ -89,3 +89,14 @@ def test_synthesize_worker_prints_elapsed_time(capfd, tmp_path):
     worker.run()
     captured = capfd.readouterr().out
     assert 'Generated in' in captured and 'seconds' in captured
+
+
+def dummy_transcriber(text, **kwargs):
+    return text.upper()
+
+
+def test_synthesize_worker_handles_none_output(capfd):
+    worker = SynthesizeWorker(dummy_transcriber, 'hi', None, {})
+    worker.run()
+    captured = capfd.readouterr().out
+    assert 'Generated in' in captured and 'seconds' in captured

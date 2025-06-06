@@ -252,7 +252,7 @@ def test_whisper_does_not_leave_busy(tmp_path):
     importlib.reload(main_window)
 
     main_window.is_backend_installed = lambda name: True
-    main_window.TRANSCRIBERS['whisper'] = lambda audio, output, **kw: 'ok'
+    main_window.TRANSCRIBERS['whisper'] = lambda audio, **kw: 'ok'
 
     class DummyWorker:
         def __init__(self, func, text, output, kwargs):
@@ -263,7 +263,10 @@ def test_whisper_does_not_leave_busy(tmp_path):
             self.finished = types.SimpleNamespace(connect=lambda cb: setattr(self, '_cb', cb))
 
         def start(self):
-            result = self.func(self.text, self.output, **self.kwargs)
+            if self.output is not None:
+                result = self.func(self.text, self.output, **self.kwargs)
+            else:
+                result = self.func(self.text, **self.kwargs)
             if hasattr(self, '_cb'):
                 self._cb(result, None, 0.0)
 
