@@ -11,6 +11,7 @@ from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from ..backend import (
     BACKENDS,
     BACKEND_FEATURES,
+    BACKEND_INFO,
     available_backends,
     ensure_backend_installed,
     is_backend_installed,
@@ -430,6 +431,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.cb_voice_button.setText(Path(file_path).name)
 
     def on_backend_changed(self, backend: str):
+        self.status.setText(BACKEND_INFO.get(backend, ""))
         self.update_install_status()
         features = BACKEND_FEATURES.get(backend, set())
 
