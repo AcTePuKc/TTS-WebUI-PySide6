@@ -236,6 +236,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Status label created early so signal handlers can reference it
         self.status = QtWidgets.QLabel()
+        if hasattr(self.status, "setWordWrap"):
+            self.status.setWordWrap(True)
 
         params_group = QtWidgets.QGroupBox("Parameters")
         params_layout = QtWidgets.QVBoxLayout(params_group)
@@ -722,8 +724,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_synthesize_finished(self, output: object, error: object, elapsed: float):
         if error:
+            msg = str(error)
+            if len(msg) > 200:
+                msg = msg[:200] + "..."
             if hasattr(self.status, "setText"):
-                self.status.setText(f"Error: {error}")
+                self.status.setText(f"Error: {msg}")
             print(f"[ERROR] {error}")
         else:
             self.transcript_view.setVisible(False)
