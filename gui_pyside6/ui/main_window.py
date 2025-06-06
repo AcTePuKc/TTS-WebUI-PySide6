@@ -102,6 +102,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         main_layout = QtWidgets.QVBoxLayout(central)
 
+        # Status label created early so signal handlers can reference it
+        self.status = QtWidgets.QLabel()
+
         # --- Backend selection tabs ---
         model_row = QtWidgets.QHBoxLayout()
         self.tabs = QtWidgets.QTabWidget()
@@ -280,8 +283,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.position_slider.sliderMoved.connect(self.player.setPosition)
         self.cb_voice_path: str | None = None
 
-        # Status label
-        self.status = QtWidgets.QLabel()
+        # Status label placed at bottom of layout
         main_layout.addWidget(self.status)
 
         # Load voices for initial backend
