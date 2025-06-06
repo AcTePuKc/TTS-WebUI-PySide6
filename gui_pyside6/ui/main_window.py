@@ -4,6 +4,7 @@ import sys
 import webbrowser
 from datetime import datetime
 import time
+from typing import Optional
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtCore import QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
@@ -42,6 +43,13 @@ WHISPER_MODELS = [
     "large-v2",
     "large-v3",
 ]
+
+
+def _hf_whisper_model(name: Optional[str]) -> str:
+    """Return a full HuggingFace model identifier for Whisper."""
+    if not name:
+        return "openai/whisper-small"
+    return name if "/" in name else f"openai/whisper-{name}"
 
 
 class SynthesizeWorker(QtCore.QThread):
@@ -657,7 +665,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if "seed" in features and seed is not None:
             kwargs["seed"] = seed
         if backend == "whisper":
-            kwargs["model_name"] = self.whisper_model_combo.currentText()
+            model_name = self.whisper_model_combo.currentText()
+            kwargs["model_name"] = _hf_whisper_model(model_name)
             if hasattr(self, "whisper_ts_checkbox") and self.whisper_ts_checkbox.isChecked():
                 kwargs["return_timestamps"] = True
 
