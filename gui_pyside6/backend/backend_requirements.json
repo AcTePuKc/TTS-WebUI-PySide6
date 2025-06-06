@@ -36,6 +36,7 @@
     "nltk"
   ],
   "whisper": [
-    "openai-whisper"
+    "openai-whisper",
+    "transformers"
   ]
 }
