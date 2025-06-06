@@ -952,7 +952,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def update_install_status(self):
         backend = self.backend_combo.currentText()
-        if is_backend_installed(backend):
+        from ..backend import backend_was_installed
+        if backend_was_installed(backend):
             self.install_button.setEnabled(False)
             self.install_button.setText("Backend Installed")
         else:
