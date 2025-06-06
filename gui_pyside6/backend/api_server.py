@@ -35,7 +35,7 @@ class SeparationRequest(BaseModel):
 class TranscriptionRequest(BaseModel):
     audio: str
     backend: str = "whisper"
-    model: Optional[str] = None
+    model: Optional[str] = "openai/whisper-small"
 
 
 @app.post("/synthesize")
@@ -62,7 +62,7 @@ def separate(req: SeparationRequest):
 def transcribe(req: TranscriptionRequest):
     if req.backend not in TRANSCRIBERS:
         raise HTTPException(status_code=400, detail="Unsupported backend")
-    text = TRANSCRIBERS[req.backend](Path(req.audio), model_name=req.model or "openai/whisper-large-v3")
+    text = TRANSCRIBERS[req.backend](Path(req.audio), model_name=req.model or "openai/whisper-small")
     return {"text": text}
 
 
