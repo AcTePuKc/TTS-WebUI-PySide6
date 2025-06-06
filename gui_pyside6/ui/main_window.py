@@ -967,6 +967,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.chatterbox_opts.setVisible(backend == "chatterbox")
         self.whisper_opts.setVisible(backend == "whisper")
+        # hide transcripts when switching away from Whisper;
+        # they will be shown again when a transcription completes
+        self.transcript_group.setVisible(backend == "whisper")
         self.update_synthesize_enabled()
         self._last_backend = backend
 
