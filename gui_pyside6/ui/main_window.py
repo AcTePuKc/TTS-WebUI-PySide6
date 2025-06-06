@@ -408,12 +408,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.waveform.setFixedWidth(200)
         self.waveform._update_scaled_pixmap()
         player_row.addWidget(self.waveform)
-        self.volume_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.volume_slider = QtWidgets.QSlider(QtCore.Qt.Vertical)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(100)
-        player_row.addWidget(self.volume_slider)
+        if hasattr(self.volume_slider, "setFixedHeight"):
+            self.volume_slider.setFixedHeight(80)
+        volume_col = QtWidgets.QVBoxLayout()
+        volume_col.addWidget(self.volume_slider)
         self.volume_label = QtWidgets.QLabel("100%")
-        player_row.addWidget(self.volume_label)
+        volume_col.addWidget(self.volume_label)
+        player_row.addLayout(volume_col)
         player_layout.addLayout(player_row)
 
         # Autoplay option

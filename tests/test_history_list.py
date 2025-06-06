@@ -36,7 +36,7 @@ class DummyQUrl:
     def fromLocalFile(p):
         return p
 qtcore_mod.QUrl = DummyQUrl
-qtcore_mod.Qt = types.SimpleNamespace(Horizontal=0, UserRole=0, AlignCenter=0)
+qtcore_mod.Qt = types.SimpleNamespace(Horizontal=0, Vertical=1, UserRole=0, AlignCenter=0)
 
 class DummyListWidget:
     def __init__(self, *a, **k):
@@ -121,7 +121,11 @@ qtmultimedia.QMediaPlayer = Dummy
 
 qtgui_mod = types.ModuleType('QtGui')
 qtgui_mod.QImage = Dummy
-qtgui_mod.QPixmap = Dummy
+class DummyPixmap:
+    @staticmethod
+    def fromImage(img):
+        return 'pixmap'
+qtgui_mod.QPixmap = DummyPixmap
 
 pyside6 = types.ModuleType('PySide6')
 pyside6.QtCore = qtcore_mod
