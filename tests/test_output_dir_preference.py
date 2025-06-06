@@ -29,15 +29,19 @@ class DummyQThread:
         pass
 qtcore.Signal = DummySignal
 qtcore.QThread = DummyQThread
-qtcore.QUrl = Dummy
+class DummyQUrl:
+    @staticmethod
+    def fromLocalFile(p):
+        return p
+qtcore.QUrl = DummyQUrl
 class DummyQtCoreModule(types.ModuleType):
     def __getattr__(self, name):
         return Dummy
 qtcore_mod = DummyQtCoreModule('QtCore')
 qtcore_mod.Signal = DummySignal
 qtcore_mod.QThread = DummyQThread
-qtcore_mod.QUrl = Dummy
-qtcore_mod.Qt = types.SimpleNamespace(Horizontal=0, UserRole=0)
+qtcore_mod.QUrl = DummyQUrl
+qtcore_mod.Qt = types.SimpleNamespace(Horizontal=0, UserRole=0, AlignCenter=0)
 
 qtwidgets = types.ModuleType('QtWidgets')
 class DummyQtWidgetsModule(types.ModuleType):
@@ -46,19 +50,32 @@ class DummyQtWidgetsModule(types.ModuleType):
 qtwidgets_mod = DummyQtWidgetsModule('QtWidgets')
 qtwidgets_mod.QMainWindow = Dummy
 qtwidgets_mod.QDialog = Dummy
+qtwidgets_mod.QWidget = Dummy
+class DummyQTabWidget:
+    def __init__(self, *a, **k):
+        self.currentChanged = DummySignal()
+    def addTab(self, *a, **k):
+        pass
+qtwidgets_mod.QTabWidget = DummyQTabWidget
 
 qtmultimedia = types.ModuleType('QtMultimedia')
 qtmultimedia.QAudioOutput = Dummy
 qtmultimedia.QMediaPlayer = Dummy
 
+qtgui_mod = types.ModuleType('QtGui')
+qtgui_mod.QImage = Dummy
+qtgui_mod.QPixmap = Dummy
+
 pyside6 = types.ModuleType('PySide6')
 pyside6.QtCore = qtcore_mod
 pyside6.QtWidgets = qtwidgets_mod
+pyside6.QtGui = qtgui_mod
 pyside6.QtMultimedia = qtmultimedia
-sys.modules.setdefault('PySide6', pyside6)
-sys.modules.setdefault('PySide6.QtCore', qtcore_mod)
-sys.modules.setdefault('PySide6.QtWidgets', qtwidgets_mod)
-sys.modules.setdefault('PySide6.QtMultimedia', qtmultimedia)
+sys.modules['PySide6'] = pyside6
+sys.modules['PySide6.QtCore'] = qtcore_mod
+sys.modules['PySide6.QtWidgets'] = qtwidgets_mod
+sys.modules['PySide6.QtGui'] = qtgui_mod
+sys.modules['PySide6.QtMultimedia'] = qtmultimedia
 
 import importlib
 from gui_pyside6.utils import preferences as prefs
