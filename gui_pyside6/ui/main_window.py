@@ -431,7 +431,6 @@ class MainWindow(QtWidgets.QMainWindow):
         player_row.addWidget(self.volume_slider)
         self.volume_label = QtWidgets.QLabel("100%")
         player_row.addWidget(self.volume_label)
-        self.on_volume_changed(self.volume_slider.value())
         player_layout.addLayout(player_row)
 
         # Autoplay option
@@ -538,6 +537,7 @@ class MainWindow(QtWidgets.QMainWindow):
         safe_connect(self.position_slider.seekRequested, self.player.setPosition)
         safe_connect(self.waveform.seekRequested, self.player.setPosition)
         safe_connect(self.volume_slider.valueChanged, self.on_volume_changed)
+        self.on_volume_changed(self.volume_slider.value())
         self.cb_voice_path: str | None = None
 
         # Status label placed at bottom of layout
