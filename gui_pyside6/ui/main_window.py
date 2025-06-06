@@ -33,6 +33,15 @@ from .preferences import PreferencesDialog
 
 OUTPUT_DIR = Path("outputs")
 MAX_TEXT_LENGTH = 1000
+WHISPER_MODELS = [
+    "tiny",
+    "base",
+    "small",
+    "medium",
+    "large-v1",
+    "large-v2",
+    "large-v3",
+]
 
 
 class SynthesizeWorker(QtCore.QThread):
@@ -487,6 +496,20 @@ class MainWindow(QtWidgets.QMainWindow):
         safe_connect(self.history_list.itemActivated, self.on_history_play)
         history_layout.addWidget(self.history_list)
 
+        whisper_form = QtWidgets.QFormLayout()
+        self.whisper_model_combo = QtWidgets.QComboBox()
+        self.whisper_model_combo.addItems(WHISPER_MODELS)
+        index = getattr(self.whisper_model_combo, "findText", lambda *_: -1)("small")
+        if isinstance(index, int) and index >= 0 and hasattr(self.whisper_model_combo, "setCurrentIndex"):
+            self.whisper_model_combo.setCurrentIndex(index)
+        elif hasattr(self.whisper_model_combo, "setCurrentText"):
+            self.whisper_model_combo.setCurrentText("small")
+        whisper_form.addRow("Model", self.whisper_model_combo)
+        self.whisper_opts = QtWidgets.QGroupBox("Whisper Options")
+        self.whisper_opts.setLayout(whisper_form)
+        self.whisper_opts.setVisible(False)
+        main_layout.addWidget(self.whisper_opts)
+
         cb_form = QtWidgets.QFormLayout()
         if hasattr(QtWidgets, "QDoubleSpinBox"):
             self.cb_exaggeration = QtWidgets.QDoubleSpinBox()
@@ -628,6 +651,8 @@ class MainWindow(QtWidgets.QMainWindow):
             kwargs["lang"] = lang_code
         if "seed" in features and seed is not None:
             kwargs["seed"] = seed
+        if backend == "whisper":
+            kwargs["model_name"] = self.whisper_model_combo.currentText()
 
         print(f"[INFO] Synthesizing with {backend}...")
         self.worker = SynthesizeWorker(func, text, output, kwargs)
@@ -920,6 +945,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.waveform._update_scaled_pixmap()
 
         self.chatterbox_opts.setVisible(backend == "chatterbox")
+        self.whisper_opts.setVisible(backend == "whisper")
         self.update_synthesize_enabled()
         self._last_backend = backend
 
