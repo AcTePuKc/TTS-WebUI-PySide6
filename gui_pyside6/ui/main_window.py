@@ -78,21 +78,6 @@ class InstallWorker(QtCore.QThread):
         self.finished.emit(self.backend, err)
 
 
-class SeekSlider(QtWidgets.QSlider):
-    """QSlider that seeks the media player when clicked."""
-
-    seekRequested = QtCore.Signal(int)
-
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton and self.maximum() > self.minimum():
-            pos = getattr(event, "position", lambda: None)()
-            x = pos.x() if pos else event.x()
-            ratio = x / max(1, self.width())
-            value = int(self.minimum() + ratio * (self.maximum() - self.minimum()))
-            self.setValue(value)
-            self.seekRequested.emit(value)
-            event.accept()
-        super().mousePressEvent(event)
 
 
 LabelBase = QtWidgets.QLabel if isinstance(getattr(QtWidgets, "QLabel", object), type) else object
@@ -283,11 +268,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         model_row.addWidget(self.tabs)
 
-        self.waveform = WaveformWidget()
-        if hasattr(self.waveform, "setFixedWidth"):
-            self.waveform.setFixedWidth(200)
-        self.waveform._update_scaled_pixmap()
-        model_row.addWidget(self.waveform)
 
         self.install_button = QtWidgets.QPushButton("Install Backend")
         safe_connect(self.install_button.clicked, self.on_install_backend)
@@ -420,11 +400,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stop_button.setEnabled(False)
         player_row.addWidget(self.stop_button)
 
-        self.position_slider = SeekSlider(QtCore.Qt.Horizontal)
-        self.position_slider.setRange(0, 0)
-        player_row.addWidget(self.position_slider)
         self.duration_label = QtWidgets.QLabel("00:00 / 00:00")
         player_row.addWidget(self.duration_label)
+        self.waveform = WaveformWidget()
+        if hasattr(self.waveform, "setFixedWidth"):
+            self.waveform.setFixedWidth(200)
+        self.waveform._update_scaled_pixmap()
+        player_row.addWidget(self.waveform)
         self.volume_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(100)
@@ -533,8 +515,6 @@ class MainWindow(QtWidgets.QMainWindow):
         safe_connect(self.player.playbackStateChanged, self.on_player_state_changed)
         safe_connect(self.player.durationChanged, self.on_duration_changed)
         safe_connect(self.player.positionChanged, self.on_position_changed)
-        safe_connect(self.position_slider.sliderMoved, self.player.setPosition)
-        safe_connect(self.position_slider.seekRequested, self.player.setPosition)
         safe_connect(self.waveform.seekRequested, self.player.setPosition)
         safe_connect(self.volume_slider.valueChanged, self.on_volume_changed)
         self.on_volume_changed(self.volume_slider.value())
@@ -746,12 +726,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.stop_button.setEnabled(False)
 
     def on_duration_changed(self, duration: int):
-        self.position_slider.setMaximum(duration)
         self.waveform.set_duration(duration)
         self.update_position_label()
 
     def on_position_changed(self, position: int):
-        self.position_slider.setValue(position)
         self.update_position_label()
         self.waveform.update_playback_position(position, self.player.duration())
 
