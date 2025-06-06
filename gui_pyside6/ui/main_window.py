@@ -227,6 +227,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         main_layout = QtWidgets.QVBoxLayout(central)
 
+        top_row = QtWidgets.QHBoxLayout()
+        main_layout.addLayout(top_row)
+
         def safe_connect(signal, slot):
             try:
                 signal.connect(slot)
@@ -235,6 +238,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Status label created early so signal handlers can reference it
         self.status = QtWidgets.QLabel()
+
+        params_group = QtWidgets.QGroupBox("Parameters")
+        params_layout = QtWidgets.QVBoxLayout(params_group)
+        top_row.addWidget(params_group, 3)
 
         # --- Backend selection tabs ---
         model_row = QtWidgets.QHBoxLayout()
@@ -267,13 +274,20 @@ class MainWindow(QtWidgets.QMainWindow):
         exp_layout.addWidget(self.exp_combo)
         self.tabs.addTab(exp_tab, "Experimental")
 
+        settings_tab = QtWidgets.QWidget()
+        settings_layout = QtWidgets.QVBoxLayout(settings_tab)
+        self.pref_button = QtWidgets.QPushButton("Preferences")
+        safe_connect(self.pref_button.clicked, self.on_preferences)
+        settings_layout.addWidget(self.pref_button)
+        self.tabs.addTab(settings_tab, "Settings")
+
         model_row.addWidget(self.tabs)
 
         self.install_button = QtWidgets.QPushButton("Install Backend")
         safe_connect(self.install_button.clicked, self.on_install_backend)
         model_row.addWidget(self.install_button)
         safe_connect(self.tabs.currentChanged, self.on_tab_changed)
-        main_layout.addLayout(model_row)
+        params_layout.addLayout(model_row)
 
         self.backend_combo = self.tts_combo
 
@@ -306,7 +320,15 @@ class MainWindow(QtWidgets.QMainWindow):
         seed_row.addWidget(seed_label)
         seed_row.addWidget(self.seed_spin)
         opts_row.addWidget(self.seed_widget)
-        main_layout.addLayout(opts_row)
+        params_layout.addLayout(opts_row)
+
+        player_group = QtWidgets.QGroupBox("Player")
+        player_layout = QtWidgets.QVBoxLayout(player_group)
+        top_row.addWidget(player_group, 2)
+
+        input_group = QtWidgets.QGroupBox("Input Text")
+        input_layout = QtWidgets.QVBoxLayout(input_group)
+        main_layout.addWidget(input_group)
 
         # Text input area
         self.text_edit = QtWidgets.QPlainTextEdit()
@@ -327,15 +349,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.text_edit.toPlainText = _to_plain
         self.text_edit.setPlaceholderText("Enter text to synthesize...")
         safe_connect(self.text_edit.textChanged, self.on_text_changed)
-        main_layout.addWidget(self.text_edit)
+        input_layout.addWidget(self.text_edit)
 
         self.audio_file: str | None = None
         self.load_audio_button = QtWidgets.QPushButton("Load Audio File")
         safe_connect(self.load_audio_button.clicked, self.on_load_audio)
         self.load_audio_button.setVisible(False)
-        main_layout.addWidget(self.load_audio_button)
+        input_layout.addWidget(self.load_audio_button)
 
         # Display area for transcription results
+        self.transcript_group = QtWidgets.QGroupBox("Transcription Output")
+        transcript_layout = QtWidgets.QVBoxLayout(self.transcript_group)
+        main_layout.addWidget(self.transcript_group)
+
         self.transcript_view = QtWidgets.QPlainTextEdit()
         _orig_set_plain = getattr(self.transcript_view, "setPlainText", None)
         _orig_to_plain = getattr(self.transcript_view, "toPlainText", None)
@@ -357,6 +383,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.transcript_view._visible = v
             if callable(_orig_set_vis):
                 _orig_set_vis(v)
+            self.transcript_group.setVisible(v)
         def _is_vis():
             if callable(_orig_is_vis):
                 val = _orig_is_vis()
@@ -370,15 +397,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.transcript_view.setReadOnly(True)
         self.transcript_view.setPlaceholderText("Transcription output...")
         self.transcript_view.setVisible(False)
-        main_layout.addWidget(self.transcript_view)
-
-        # Synthesize button
-        self.button = QtWidgets.QPushButton("Synthesize")
-        safe_connect(self.button.clicked, self.on_synthesize)
-        main_layout.addWidget(self.button)
+        transcript_layout.addWidget(self.transcript_view)
+        self.transcript_group.setVisible(False)
 
         self.waveform = WaveformWidget()
-        main_layout.addWidget(self.waveform)
+        player_layout.addWidget(self.waveform)
 
         # --- Mini player row ---
         player_row = QtWidgets.QHBoxLayout()
@@ -404,33 +427,35 @@ class MainWindow(QtWidgets.QMainWindow):
         self.volume_label = QtWidgets.QLabel("100%")
         player_row.addWidget(self.volume_label)
         self.on_volume_changed(self.volume_slider.value())
-        main_layout.addLayout(player_row)
+        player_layout.addLayout(player_row)
 
         # Autoplay option
         self.autoplay_check = QtWidgets.QCheckBox("Auto play after synthesis")
         self.autoplay_check.setChecked(self.prefs.get("autoplay", True))
-        main_layout.addWidget(self.autoplay_check)
+        player_layout.addWidget(self.autoplay_check)
 
-        # --- Misc buttons row ---
-        misc_row = QtWidgets.QHBoxLayout()
-        self.api_button = QtWidgets.QPushButton("Run API Server")
-        safe_connect(self.api_button.clicked, self.on_api_server_toggle)
-        misc_row.addWidget(self.api_button)
-
-        self.open_api_button = QtWidgets.QPushButton("Open API Docs")
-        safe_connect(self.open_api_button.clicked, self.on_open_api)
-        misc_row.addWidget(self.open_api_button)
+        buttons_row = QtWidgets.QHBoxLayout()
+        self.button = QtWidgets.QPushButton("Synthesize")
+        safe_connect(self.button.clicked, self.on_synthesize)
+        buttons_row.addWidget(self.button)
 
         self.open_button = QtWidgets.QPushButton("Open Output Folder")
         safe_connect(self.open_button.clicked, self.on_open_output)
-        misc_row.addWidget(self.open_button)
+        buttons_row.addWidget(self.open_button)
 
-        self.pref_button = QtWidgets.QPushButton("Preferences")
-        safe_connect(self.pref_button.clicked, self.on_preferences)
-        misc_row.addWidget(self.pref_button)
-        main_layout.addLayout(misc_row)
+        self.open_api_button = QtWidgets.QPushButton("Open API Docs")
+        safe_connect(self.open_api_button.clicked, self.on_open_api)
+        buttons_row.addWidget(self.open_api_button)
 
-        # History list
+        self.api_button = QtWidgets.QPushButton("Run API Server")
+        safe_connect(self.api_button.clicked, self.on_api_server_toggle)
+        buttons_row.addWidget(self.api_button)
+        input_layout.addLayout(buttons_row)
+
+        history_group = QtWidgets.QGroupBox("History")
+        history_layout = QtWidgets.QVBoxLayout(history_group)
+        main_layout.addWidget(history_group)
+
         self.history_list = QtWidgets.QListWidget()
         supports_insert = True
         try:
@@ -458,7 +483,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.history_list.count = _count
             self.history_list.takeItem = _take
         safe_connect(self.history_list.itemActivated, self.on_history_play)
-        main_layout.addWidget(self.history_list)
+        history_layout.addWidget(self.history_list)
 
         cb_form = QtWidgets.QFormLayout()
         if hasattr(QtWidgets, "QDoubleSpinBox"):
@@ -512,6 +537,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Status label placed at bottom of layout
         main_layout.addWidget(self.status)
+
+        main_layout.setStretch(1, 1)
+        main_layout.setStretch(3, 2)
 
         # Load voices for initial backend
         self.on_backend_changed(self.backend_combo.currentText())
