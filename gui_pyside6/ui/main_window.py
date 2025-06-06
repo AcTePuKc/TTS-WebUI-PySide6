@@ -12,7 +12,9 @@ from ..backend import (
     BACKENDS,
     BACKEND_FEATURES,
     BACKEND_INFO,
-    available_backends,
+    TTS_BACKENDS,
+    TOOL_BACKENDS,
+    EXPERIMENTAL_BACKENDS,
     ensure_backend_installed,
     is_backend_installed,
     get_gtts_languages,
@@ -100,18 +102,46 @@ class MainWindow(QtWidgets.QMainWindow):
 
         main_layout = QtWidgets.QVBoxLayout(central)
 
-        # --- Model selection row ---
+        # --- Backend selection tabs ---
         model_row = QtWidgets.QHBoxLayout()
-        self.backend_combo = QtWidgets.QComboBox()
-        self.backend_combo.addItems(available_backends())
-        self.backend_combo.currentTextChanged.connect(self.on_backend_changed)
-        self.backend_combo.currentTextChanged.connect(self.update_synthesize_enabled)
-        model_row.addWidget(self.backend_combo)
+        self.tabs = QtWidgets.QTabWidget()
+        self.tabs.currentChanged.connect(self.on_tab_changed)
+
+        tts_tab = QtWidgets.QWidget()
+        tts_layout = QtWidgets.QVBoxLayout(tts_tab)
+        self.tts_combo = QtWidgets.QComboBox()
+        self.tts_combo.addItems(TTS_BACKENDS)
+        self.tts_combo.currentTextChanged.connect(self.on_backend_changed)
+        self.tts_combo.currentTextChanged.connect(self.update_synthesize_enabled)
+        tts_layout.addWidget(self.tts_combo)
+        self.tabs.addTab(tts_tab, "TTS Engines")
+
+        tools_tab = QtWidgets.QWidget()
+        tools_layout = QtWidgets.QVBoxLayout(tools_tab)
+        self.tools_combo = QtWidgets.QComboBox()
+        self.tools_combo.addItems(TOOL_BACKENDS)
+        self.tools_combo.currentTextChanged.connect(self.on_backend_changed)
+        self.tools_combo.currentTextChanged.connect(self.update_synthesize_enabled)
+        tools_layout.addWidget(self.tools_combo)
+        self.tabs.addTab(tools_tab, "Audio Tools")
+
+        exp_tab = QtWidgets.QWidget()
+        exp_layout = QtWidgets.QVBoxLayout(exp_tab)
+        self.exp_combo = QtWidgets.QComboBox()
+        self.exp_combo.addItems(EXPERIMENTAL_BACKENDS)
+        self.exp_combo.currentTextChanged.connect(self.on_backend_changed)
+        self.exp_combo.currentTextChanged.connect(self.update_synthesize_enabled)
+        exp_layout.addWidget(self.exp_combo)
+        self.tabs.addTab(exp_tab, "Experimental")
+
+        model_row.addWidget(self.tabs)
 
         self.install_button = QtWidgets.QPushButton("Install Backend")
         self.install_button.clicked.connect(self.on_install_backend)
         model_row.addWidget(self.install_button)
         main_layout.addLayout(model_row)
+
+        self.backend_combo = self.tts_combo
 
         # --- Optional selectors row ---
         opts_row = QtWidgets.QHBoxLayout()
@@ -429,6 +459,15 @@ class MainWindow(QtWidgets.QMainWindow):
         if file_path:
             self.cb_voice_path = file_path
             self.cb_voice_button.setText(Path(file_path).name)
+
+    def on_tab_changed(self, index: int):
+        if index == 0:
+            self.backend_combo = self.tts_combo
+        elif index == 1:
+            self.backend_combo = self.tools_combo
+        else:
+            self.backend_combo = self.exp_combo
+        self.on_backend_changed(self.backend_combo.currentText())
 
     def on_backend_changed(self, backend: str):
         self.status.setText(BACKEND_INFO.get(backend, ""))
