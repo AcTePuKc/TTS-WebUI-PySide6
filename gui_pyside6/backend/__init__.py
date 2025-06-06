@@ -203,6 +203,19 @@ def get_mms_languages() -> list[tuple[str, str]]:
     except Exception:
         return [("English", "eng")]
 
+def _dist_or_module_available(name: str) -> bool:
+    """Return True if the distribution or importable module exists."""
+    try:
+        metadata.distribution(name)
+        return True
+    except metadata.PackageNotFoundError:
+        pass
+    try:
+        return importlib.util.find_spec(name) is not None
+    except Exception:
+        return False
+
+
 def missing_backend_packages(name: str) -> list[str]:
     """Return a list of required packages that are not currently installed."""
 
@@ -211,18 +224,13 @@ def missing_backend_packages(name: str) -> list[str]:
     # package is present.
     if name == "kokoro":
         for candidate in ("kokoro", "kokoro-fastapi"):
-            try:
-                metadata.distribution(candidate)
+            if _dist_or_module_available(candidate):
                 return []
-            except metadata.PackageNotFoundError:
-                continue
 
     missing = []
     for pkg in _get_backend_packages(name):
         dist_name = _get_distribution_name(pkg)
-        try:
-            metadata.distribution(dist_name)
-        except metadata.PackageNotFoundError:
+        if not _dist_or_module_available(dist_name):
             missing.append(pkg)
     return missing
 
