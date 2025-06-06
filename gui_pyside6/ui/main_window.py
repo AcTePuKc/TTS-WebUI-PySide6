@@ -95,6 +95,7 @@ class WaveformWidget(LabelBase):
         if hasattr(self, "setMaximumHeight"):
             self.setMaximumHeight(120)
         self._pixmap_orig = None
+        self._playback_ratio = 0.0
 
     def _update_scaled_pixmap(self):
         if self._pixmap_orig is None:
@@ -109,6 +110,30 @@ class WaveformWidget(LabelBase):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._update_scaled_pixmap()
+
+    def paintEvent(self, event):
+        if LabelBase is not object:
+            super().paintEvent(event)
+            if self.pixmap() is None:
+                return
+            painter = QtGui.QPainter(self)
+            pen = QtGui.QPen(QtGui.QColor("red"))
+            pen.setWidth(2)
+            painter.setPen(pen)
+            x = int(self.width() * self._playback_ratio)
+            painter.drawLine(x, 0, x, self.height())
+        else:
+            return
+
+    def update_playback_position(self, position_ms: int, duration_ms: int):
+        if duration_ms > 0:
+            ratio = max(0.0, min(1.0, position_ms / duration_ms))
+        else:
+            ratio = 0.0
+        if ratio != self._playback_ratio:
+            self._playback_ratio = ratio
+            if hasattr(self, "update"):
+                self.update()
 
     def set_audio_array(self, audio_array):
         import numpy as np
@@ -620,6 +645,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def on_position_changed(self, position: int):
         self.position_slider.setValue(position)
         self.update_position_label()
+        self.waveform.update_playback_position(position, self.player.duration())
 
     def update_position_label(self):
         pos = self.player.position()
