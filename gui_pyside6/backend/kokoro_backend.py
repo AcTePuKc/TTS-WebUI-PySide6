@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
 import site
 
 
@@ -85,9 +86,10 @@ def list_voices() -> list[tuple[str, str]]:
     """Return available Kokoro voice display names and identifiers."""
     try:
         from extension_kokoro import CHOICES as choices_mod
+        print("[INFO] Loaded voice list from extension_kokoro.CHOICES")
         return list(getattr(choices_mod, "CHOICES", {}).items())
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[INFO] extension_kokoro.CHOICES not available: {e}")
 
     try:
         import importlib.util
@@ -96,6 +98,7 @@ def list_voices() -> list[tuple[str, str]]:
         if spec and spec.origin:
             choices_path = Path(spec.origin).parent / "CHOICES.py"
             if choices_path.exists():
+                print(f"[INFO] Loading voices from {choices_path}")
                 namespace: dict[str, object] = {}
                 with choices_path.open("r", encoding="utf-8") as f:
                     code = f.read()
@@ -103,8 +106,26 @@ def list_voices() -> list[tuple[str, str]]:
                 choices = namespace.get("CHOICES", {})
                 if isinstance(choices, dict):
                     return list(choices.items())
-    except Exception:
-        pass
+            else:
+                print(f"[INFO] No CHOICES.py at {choices_path}")
+    except Exception as e:
+        print(f"[WARN] Failed to load voices from CHOICES.py: {e}")
+
+    dirs_to_check: list[Path] = []
+
+    env_dir = os.environ.get("KOKORO_VOICE_DIR")
+    if env_dir:
+        dirs_to_check.append(Path(env_dir))
+
+    try:
+        from ..utils.preferences import load_preferences
+
+        prefs = load_preferences()
+        pref_dir = prefs.get("kokoro_voice_dir")
+        if pref_dir:
+            dirs_to_check.append(Path(pref_dir))
+    except Exception as e:
+        print(f"[WARN] Failed to load preferences: {e}")
 
     # Kokoro-FastAPI packages voice models under api/src/voices/v1_0
     try:
@@ -112,19 +133,24 @@ def list_voices() -> list[tuple[str, str]]:
         spec = importlib.util.find_spec("kokoro_fastapi")
         if spec and spec.origin:
             base = Path(spec.origin).parent.parent
-            voice_dir = base / "api" / "src" / "voices" / "v1_0"
-            if voice_dir.exists():
-                voices = [p.stem for p in voice_dir.glob("*.pt")]
-                if voices:
-                    return [(v, v) for v in sorted(voices)]
-    except Exception:
-        pass
+            dirs_to_check.append(base / "api" / "src" / "voices" / "v1_0")
+    except Exception as e:
+        print(f"[INFO] Unable to locate kokoro_fastapi voices: {e}")
 
-    # Fallback: search all site-packages locations
     for root in site.getsitepackages():
-        voice_dir = Path(root) / "api" / "src" / "voices" / "v1_0"
-        if voice_dir.exists():
-            voices = [p.stem for p in voice_dir.glob("*.pt")]
+        dirs_to_check.append(Path(root) / "api" / "src" / "voices" / "v1_0")
+
+    checked = False
+    for d in dirs_to_check:
+        print(f"[INFO] Checking voice directory: {d}")
+        checked = True
+        if d.exists():
+            voices = [p.stem for p in d.glob("*.pt")]
             if voices:
+                print(f"[INFO] Found {len(voices)} voices in {d}")
                 return [(v, v) for v in sorted(voices)]
+    if not checked:
+        print("[INFO] No voice directories to check")
+    else:
+        print("[WARN] No Kokoro voices found in checked directories")
     return []
