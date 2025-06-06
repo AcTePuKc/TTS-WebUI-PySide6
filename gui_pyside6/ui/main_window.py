@@ -684,6 +684,9 @@ class MainWindow(QtWidgets.QMainWindow):
         path = Path(item.text())
         if path.exists():
             self.last_output = path
+            if path.exists():
+                self.waveform.set_audio_file(path)
+                self.player.setSource(QUrl.fromLocalFile(str(path)))
             self.on_play_output()
 
 
@@ -713,8 +716,14 @@ class MainWindow(QtWidgets.QMainWindow):
                         first = paths[0]
                         output_desc = first.parent
                         self.last_output = first
+                        # insert newest paths at the top and load each as it becomes selected
                         for p in reversed(paths):
+                            self.last_output = p
                             self.history_list.insertItem(0, str(p))
+                            if p.exists():
+                                self.waveform.set_audio_file(p)
+                                self.player.setSource(QUrl.fromLocalFile(str(p)))
+                        self.last_output = first
                     else:
                         self.last_output = None
                 elif isinstance(output, (str, Path)):

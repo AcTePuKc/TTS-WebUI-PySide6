@@ -227,12 +227,20 @@ def test_list_of_paths_handled(tmp_path):
     window = main_window.MainWindow()
     window.autoplay_check = types.SimpleNamespace(isChecked=lambda: False)
 
+    # track waveform updates
+    calls = []
+    def fake_set_audio_file(self, path):
+        calls.append(Path(path))
+    window.waveform.set_audio_file = types.MethodType(fake_set_audio_file, window.waveform)
+
     p1 = tmp_path / 'seg1.wav'
     p2 = tmp_path / 'seg2.wav'
     p1.write_text('a')
     p2.write_text('b')
 
     window.on_synthesize_finished([p1, p2], None, 0.0)
+
+    assert calls == [p2, p1, p1]
 
     assert window.last_output == p1
     assert window.history_list.items[0] == str(p1)
