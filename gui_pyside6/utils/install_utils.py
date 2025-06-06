@@ -36,6 +36,21 @@ def _venv_site_packages() -> Path:
         return VENV_DIR / "Lib" / "site-packages"
     return VENV_DIR / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
 
+
+def inject_hybrid_site_packages() -> None:
+    """Ensure the per-user hybrid venv's site-packages is on ``sys.path``.
+
+    This helper allows packages previously installed in ``~/.hybrid_tts/venv`` to
+    remain importable when the application is launched outside any active
+    virtual environment.
+    """
+    if _is_venv_active():
+        return
+    _ensure_venv()
+    site_dir = _venv_site_packages()
+    if str(site_dir) not in sys.path:
+        sys.path.insert(0, str(site_dir))
+
 def install_package_in_venv(package: str | Iterable[str]):
     """Install packages into the current venv if active, else into hybrid_tts venv."""
     if isinstance(package, str):

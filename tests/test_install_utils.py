@@ -1,8 +1,13 @@
 import os, sys
+from pathlib import Path
 from unittest import mock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gui_pyside6.utils.install_utils import install_package_in_venv, uninstall_package_from_venv
+from gui_pyside6.utils.install_utils import (
+    install_package_in_venv,
+    uninstall_package_from_venv,
+    inject_hybrid_site_packages,
+)
 
 def test_install_package_uses_ensurepip_and_pip():
     calls = []
@@ -55,3 +60,24 @@ def test_uninstall_package_uses_pip_uninstall():
     call.assert_called_once()
     args = call.call_args[0][0]
     assert 'pip' in args and 'uninstall' in args
+
+
+def test_inject_hybrid_site_packages_adds_path_when_no_env():
+    with mock.patch('gui_pyside6.utils.install_utils._is_venv_active', return_value=False), \
+         mock.patch('gui_pyside6.utils.install_utils._venv_site_packages', return_value=Path('/tmp/site')), \
+         mock.patch('gui_pyside6.utils.install_utils._ensure_venv') as ensure:
+        fake_path = []
+        with mock.patch.object(sys, 'path', fake_path):
+            inject_hybrid_site_packages()
+        assert fake_path == ['/tmp/site']
+        ensure.assert_called_once()
+
+
+def test_inject_hybrid_site_packages_noop_when_env_active():
+    with mock.patch('gui_pyside6.utils.install_utils._is_venv_active', return_value=True), \
+         mock.patch('gui_pyside6.utils.install_utils._ensure_venv') as ensure:
+        fake_path = []
+        with mock.patch.object(sys, 'path', fake_path):
+            inject_hybrid_site_packages()
+        assert fake_path == []
+        ensure.assert_not_called()
