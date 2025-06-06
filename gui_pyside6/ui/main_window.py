@@ -287,7 +287,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.text_edit.setPlainText = _set_plain
         self.text_edit.toPlainText = _to_plain
         self.text_edit.setPlaceholderText("Enter text to synthesize...")
-        safe_connect(self.text_edit.textChanged, self.update_synthesize_enabled)
+        safe_connect(self.text_edit.textChanged, self.on_text_changed)
         main_layout.addWidget(self.text_edit)
 
         self.audio_file: str | None = None
@@ -846,12 +846,24 @@ class MainWindow(QtWidgets.QMainWindow):
             text = ""
             if hasattr(self.text_edit, "toPlainText"):
                 val = self.text_edit.toPlainText()
+                print(
+                    f"[DEBUG] update_synthesize_enabled read text: {val}",
+                    file=sys.__stdout__,
+                )
                 if val is not None:
                     text = str(val)
             text_present = bool(text.strip())
         backend_ready = is_backend_installed(backend)
         busy = getattr(self, "_synth_busy", False)
+        print(
+            f"[DEBUG] synth_btn state text_present={text_present}, backend_ready={backend_ready}, busy={busy}",
+            file=sys.__stdout__,
+        )
         self.button.setEnabled(text_present and backend_ready and not busy)
+
+    def on_text_changed(self):
+        print("[DEBUG] textChanged emitted", file=sys.__stdout__)
+        self.update_synthesize_enabled()
 
     def on_preferences(self):
         dlg = PreferencesDialog(self.prefs, self)
