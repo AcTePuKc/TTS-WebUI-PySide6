@@ -722,6 +722,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.seed_widget.setVisible(False)
             return
 
+        import importlib
+        importlib.invalidate_caches()
+
         # configure voice and language lists
         if backend == "pyttsx3":
             try:
