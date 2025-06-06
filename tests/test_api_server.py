@@ -14,6 +14,7 @@ gtts_dummy.gTTS = lambda *a, **k: None
 sys.modules.setdefault("gtts", gtts_dummy)
 
 from gui_pyside6.backend import api_server
+from fastapi.testclient import TestClient
 
 
 def test_synthesize_route_exists():
@@ -42,3 +43,9 @@ def test_transcription_request_fields():
     model = api_server.TranscriptionRequest(audio="audio.wav")
     assert hasattr(model, "backend")
     assert hasattr(model, "model")
+
+
+def test_root_returns_200():
+    client = TestClient(api_server.app)
+    resp = client.get("/")
+    assert resp.status_code == 200

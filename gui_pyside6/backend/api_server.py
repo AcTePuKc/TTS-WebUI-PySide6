@@ -12,6 +12,12 @@ from . import BACKENDS, TRANSCRIBERS
 app = FastAPI(title="Hybrid TTS API")
 
 
+@app.get("/", include_in_schema=False)
+def index() -> dict[str, str]:
+    """Simple health endpoint for the API."""
+    return {"message": "Hybrid TTS API"}
+
+
 class SynthesisRequest(BaseModel):
     text: str
     backend: str = "pyttsx3"
