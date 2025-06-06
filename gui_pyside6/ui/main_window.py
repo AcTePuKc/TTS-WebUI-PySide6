@@ -507,6 +507,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         file_based = "file" in features
         self.load_audio_button.setVisible(file_based)
+        self.text_edit.setVisible(not file_based)
         if not file_based:
             self.audio_file = None
             self.load_audio_button.setText("Load Audio File")
@@ -559,9 +560,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_synthesize_enabled(self):
         backend = self.backend_combo.currentText()
         features = BACKEND_FEATURES.get(backend, set())
-        text_present = bool(self.text_edit.toPlainText().strip())
-        if "file" in features:
-            text_present = self.audio_file is not None
+        file_required = "file" in features
+        if file_required:
+            text_present = bool(self.audio_file) and Path(self.audio_file).is_file()
+        else:
+            text_present = bool(self.text_edit.toPlainText().strip())
         backend_ready = is_backend_installed(backend)
         busy = getattr(self, "_synth_busy", False)
         self.button.setEnabled(text_present and backend_ready and not busy)
