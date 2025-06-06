@@ -621,13 +621,19 @@ class MainWindow(QtWidgets.QMainWindow):
                 if isinstance(output, list) and output:
                     # demucs and future tools may return a list of file paths
                     if all(isinstance(p, (str, Path)) for p in output):
-                        first = Path(output[0])
+                        paths = [Path(p) for p in output]
+                        first = paths[0]
                         output_desc = first.parent
                         self.last_output = first
+                        for p in reversed(paths):
+                            self.history_list.insertItem(0, str(p))
                     else:
                         self.last_output = None
                 elif isinstance(output, (str, Path)):
-                    self.last_output = Path(output)
+                    p = Path(output)
+                    self.last_output = p
+                    output_desc = p
+                    self.history_list.insertItem(0, str(p))
                 else:
                     self.last_output = None
 
@@ -636,7 +642,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.status.setText(f"Saved to {output_desc}")
                 if self.last_output and self.last_output.exists():
                     self.play_button.setEnabled(True)
-                if isinstance(output_desc, Path):
+                if isinstance(output_desc, Path) and not isinstance(output, list):
                     self.history_list.insertItem(0, str(output_desc))
                 if self.autoplay_check.isChecked() and self.last_output:
                     self.on_play_output()

@@ -190,5 +190,6 @@ def test_list_of_paths_handled(tmp_path):
     window.on_synthesize_finished([p1, p2], None, 0.0)
 
     assert window.last_output == p1
-    assert window.history_list.items[0] == str(tmp_path)
+    assert window.history_list.items[0] == str(p1)
+    assert window.history_list.items[1] == str(p2)
 
