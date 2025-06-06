@@ -6,7 +6,7 @@ from pathlib import Path
 def transcribe_to_text(
     audio_path: Path,
     *,
-    model_name: str = "openai/whisper-large-v3",
+    model_name: str = "openai/whisper-small",
     return_timestamps: bool | None = None,
 ) -> str:
     """Transcribe speech from ``audio_path`` using a Whisper model.
