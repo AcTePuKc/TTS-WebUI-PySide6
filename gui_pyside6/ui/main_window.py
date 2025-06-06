@@ -325,19 +325,27 @@ class MainWindow(QtWidgets.QMainWindow):
         _orig_set_plain = getattr(self.text_edit, "setPlainText", None)
         _orig_to_plain = getattr(self.text_edit, "toPlainText", None)
         self.text_edit._stored_text = ""
+
         def _set_plain(t):
             self.text_edit._stored_text = t
             if callable(_orig_set_plain):
                 _orig_set_plain(t)
+
         def _to_plain():
-            if callable(_orig_to_plain):
-                val = _orig_to_plain()
-                if val is not None:
-                    return val
-            return self.text_edit._stored_text
+            val = _orig_to_plain() if callable(_orig_to_plain) else None
+            if val is None or val == "":
+                return self.text_edit._stored_text
+            return val
+
+        def _record_text():
+            val = _orig_to_plain() if callable(_orig_to_plain) else None
+            if val is not None:
+                self.text_edit._stored_text = str(val)
+
         self.text_edit.setPlainText = _set_plain
         self.text_edit.toPlainText = _to_plain
         self.text_edit.setPlaceholderText("Enter text to synthesize...")
+        safe_connect(self.text_edit.textChanged, _record_text)
         safe_connect(self.text_edit.textChanged, self.on_text_changed)
         input_layout.addWidget(self.text_edit)
 
@@ -536,6 +544,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Load voices for initial backend
         self.on_backend_changed(self.backend_combo.currentText())
+        self._last_backend = self.backend_combo.currentText()
         self.update_synthesize_enabled()
 
     def on_synthesize(self):
@@ -799,6 +808,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.on_backend_changed(self.backend_combo.currentText())
 
     def on_backend_changed(self, backend: str):
+        prev_backend = getattr(self, "_last_backend", None)
+        prev_features = BACKEND_FEATURES.get(prev_backend, set()) if prev_backend else set()
         if hasattr(self.button, "setText"):
             self.button.setText("Transcribe" if backend in TRANSCRIBERS else "Synthesize")
         if hasattr(self.status, "setText"):
@@ -884,6 +895,12 @@ class MainWindow(QtWidgets.QMainWindow):
         file_based = "file" in features
         self.load_audio_button.setVisible(file_based)
         self.text_edit.setVisible(not file_based)
+
+        prev_file_based = "file" in prev_features
+        if prev_file_based and not file_based:
+            self.text_edit.setPlainText(self.text_edit._stored_text)
+            self.update_synthesize_enabled()
+
         if not file_based:
             self.audio_file = None
             self.load_audio_button.setText("Load Audio File")
@@ -895,6 +912,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.chatterbox_opts.setVisible(backend == "chatterbox")
         self.update_synthesize_enabled()
+        self._last_backend = backend
 
 
     def _generate_output_path(self, text: str, backend: str) -> Path:
