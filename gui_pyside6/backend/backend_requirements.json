@@ -10,33 +10,32 @@
     "uvicorn"
   ],
   "bark": [
-    "extension_bark @ git+https://github.com/rsxdalv/extension_bark@main"
+    "bark"
   ],
   "tortoise": [
-    "extension_tortoise @ git+https://github.com/rsxdalv/extension_tortoise@main"
+    "tortoise-tts"
   ],
   "edge_tts": [
     "edge-tts"
   ],
   "demucs": [
-    "extension_demucs @ git+https://github.com/rsxdalv/extension_demucs@main"
+    "demucs"
   ],
   "mms": [
-    "extension_mms @ git+https://github.com/rsxdalv/extension_mms@main"
-  ],
-  "seamless_m4t": [
-    "extension_seamless_m4t @ git+https://github.com/rsxdalv/extension_seamless_m4t@main"
+    "transformers",
+    "iso-639"
   ],
   "vocos": [
-    "extension_vocos @ git+https://github.com/rsxdalv/extension_vocos@main"
+    "vocos"
   ],
   "kokoro": [
-    "kokoro-fastapi @ git+https://github.com/remsky/Kokoro-FastAPI@release"
+    "kokoro"
   ],
   "chatterbox": [
-    "extension_chatterbox @ git+https://github.com/rsxdalv/extension_chatterbox@main"
+    "chatterbox-tts",
+    "nltk"
   ],
   "whisper": [
-    "extension_whisper @ git+https://github.com/rsxdalv/extension_whisper@main"
+    "openai-whisper"
   ]
 }
