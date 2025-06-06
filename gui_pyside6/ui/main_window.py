@@ -1036,6 +1036,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
                 if val is not None:
                     text = str(val)
+            if not text.strip() and hasattr(self.text_edit, "_stored_text"):
+                text = str(getattr(self.text_edit, "_stored_text", ""))
             text_present = bool(text.strip())
         backend_ready = is_backend_installed(backend)
         busy = getattr(self, "_synth_busy", False)
