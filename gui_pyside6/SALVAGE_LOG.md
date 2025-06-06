@@ -47,3 +47,4 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
   also checks `VIRTUAL_ENV` and `CONDA_PREFIX` so Conda environments are handled
   correctly.
 - Replaced `extension_*` backend requirements with official pip packages and added a minimal `mms_languages.txt` file.
+- Added `transformers` as an additional dependency for the `whisper` backend.

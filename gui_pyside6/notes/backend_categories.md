@@ -20,6 +20,6 @@ These backends operate on audio files instead of text. The UI displays a file pi
 
 - **demucs** – splits audio into stems
 - **vocos** – reconstructs audio using a neural codec
-- **whisper** – transcribes speech to text
+- **whisper** – transcribes speech to text (requires `openai-whisper` and `transformers`)
 
 Backends marked as experimental either failed to install or had unresolved issues during testing.
