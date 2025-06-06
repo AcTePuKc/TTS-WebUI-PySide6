@@ -120,3 +120,20 @@ def test_get_mms_languages_returns_list():
 
 def test_whisper_backend_available():
     assert "whisper" in available_transcribers()
+
+
+def test_kokoro_voice_dir_env(tmp_path, monkeypatch):
+    monkeypatch.delitem(sys.modules, "extension_kokoro.CHOICES", raising=False)
+    monkeypatch.setenv("KOKORO_VOICE_DIR", str(tmp_path))
+    (tmp_path / "custom.pt").write_text("x")
+    from gui_pyside6.backend import get_kokoro_voices
+    voices = get_kokoro_voices()
+    assert voices == [("custom", "custom")]
+
+
+def test_kokoro_voice_dir_missing(tmp_path, monkeypatch):
+    monkeypatch.delitem(sys.modules, "extension_kokoro.CHOICES", raising=False)
+    monkeypatch.setenv("KOKORO_VOICE_DIR", str(tmp_path))
+    from gui_pyside6.backend import get_kokoro_voices
+    voices = get_kokoro_voices()
+    assert voices == []
