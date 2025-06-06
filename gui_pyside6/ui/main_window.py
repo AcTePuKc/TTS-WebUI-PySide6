@@ -239,7 +239,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         params_group = QtWidgets.QGroupBox("Parameters")
         params_layout = QtWidgets.QVBoxLayout(params_group)
-        top_row.addWidget(params_group, 3)
+        # Balance params/player groups around 55/45 for better scaling
+        top_row.addWidget(params_group, 11)
 
         # --- Backend selection tabs ---
         model_row = QtWidgets.QHBoxLayout()
@@ -323,7 +324,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         player_group = QtWidgets.QGroupBox("Player")
         player_layout = QtWidgets.QVBoxLayout(player_group)
-        top_row.addWidget(player_group, 2)
+        top_row.addWidget(player_group, 9)
 
         input_group = QtWidgets.QGroupBox("Input Text")
         input_layout = QtWidgets.QVBoxLayout(input_group)
@@ -424,10 +425,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.duration_label = QtWidgets.QLabel("00:00 / 00:00")
         player_row.addWidget(self.duration_label)
         self.waveform = WaveformWidget()
-        if hasattr(self.waveform, "setFixedWidth"):
-            self.waveform.setFixedWidth(200)
         self.waveform._update_scaled_pixmap()
         player_row.addWidget(self.waveform)
+        # Use stretch to scale waveform instead of fixed width
+        player_row.setStretch(player_row.indexOf(self.waveform), 1)
         self.volume_slider = QtWidgets.QSlider(QtCore.Qt.Vertical)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(100)
