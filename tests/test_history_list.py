@@ -180,6 +180,7 @@ def test_history_list_populated(tmp_path):
 
     assert window.last_output == out_path
     assert window.history_list.items[0] == str(out_path)
+    assert len(window.history_list.items) == 1
     for m in list(sys.modules):
         if m.startswith('PySide6'):
             sys.modules.pop(m)
@@ -236,6 +237,35 @@ def test_list_of_paths_handled(tmp_path):
     assert window.last_output == p1
     assert window.history_list.items[0] == str(p1)
     assert window.history_list.items[1] == str(p2)
+    for m in list(sys.modules):
+        if m.startswith('PySide6'):
+            sys.modules.pop(m)
+    sys.modules.update(saved)
+
+
+def test_vocos_history_single_entry(tmp_path):
+    """Vocos returns a single output path that should be added once."""
+    saved = _setup_pyside6_stubs()
+    prefs.PREF_FILE = tmp_path / 'prefs.json'
+    prefs.save_preferences({})
+
+    import importlib
+    import gui_pyside6.ui.main_window as main_window
+    importlib.reload(main_window)
+
+    main_window.is_backend_installed = lambda name: True
+
+    window = main_window.MainWindow()
+    window.autoplay_check = types.SimpleNamespace(isChecked=lambda: False)
+
+    vocos_out = tmp_path / 'vocos.wav'
+    vocos_out.write_text('v')
+
+    window.on_synthesize_finished(vocos_out, None, 0.0)
+
+    assert window.last_output == vocos_out
+    assert window.history_list.items[0] == str(vocos_out)
+    assert len(window.history_list.items) == 1
     for m in list(sys.modules):
         if m.startswith('PySide6'):
             sys.modules.pop(m)

@@ -721,8 +721,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.status.setText(f"Saved to {output_desc}")
                 if self.last_output and self.last_output.exists():
                     self.play_button.setEnabled(True)
-                if isinstance(output_desc, Path) and not isinstance(output, list):
-                    self.history_list.insertItem(0, str(output_desc))
                 if self.autoplay_check.isChecked() and self.last_output:
                     self.on_play_output()
                 if self.last_output and self.last_output.exists():
