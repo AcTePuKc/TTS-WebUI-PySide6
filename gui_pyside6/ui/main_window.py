@@ -78,11 +78,30 @@ class InstallWorker(QtCore.QThread):
         self.finished.emit(self.backend, err)
 
 
+class SeekSlider(QtWidgets.QSlider):
+    """QSlider that seeks the media player when clicked."""
+
+    seekRequested = QtCore.Signal(int)
+
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton and self.maximum() > self.minimum():
+            pos = getattr(event, "position", lambda: None)()
+            x = pos.x() if pos else event.x()
+            ratio = x / max(1, self.width())
+            value = int(self.minimum() + ratio * (self.maximum() - self.minimum()))
+            self.setValue(value)
+            self.seekRequested.emit(value)
+            event.accept()
+        super().mousePressEvent(event)
+
+
 LabelBase = QtWidgets.QLabel if isinstance(getattr(QtWidgets, "QLabel", object), type) else object
 
 
 class WaveformWidget(LabelBase):
     """Simple widget to display an audio waveform."""
+
+    seekRequested = QtCore.Signal(int)
 
     def __init__(self, parent: QtWidgets.QWidget | None = None):
         if LabelBase is object:
@@ -95,6 +114,7 @@ class WaveformWidget(LabelBase):
             self.setScaledContents(True)
         self._pixmap_orig = None
         self._playback_ratio = 0.0
+        self._duration_ms = 0
 
     def _update_scaled_pixmap(self):
         if self._pixmap_orig is None:
@@ -109,6 +129,9 @@ class WaveformWidget(LabelBase):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._update_scaled_pixmap()
+
+    def set_duration(self, duration_ms: int):
+        self._duration_ms = duration_ms
 
     def paintEvent(self, event):
         if LabelBase is not object:
@@ -125,6 +148,7 @@ class WaveformWidget(LabelBase):
             return
 
     def update_playback_position(self, position_ms: int, duration_ms: int):
+        self._duration_ms = duration_ms
         if duration_ms > 0:
             ratio = max(0.0, min(1.0, position_ms / duration_ms))
         else:
@@ -134,6 +158,16 @@ class WaveformWidget(LabelBase):
             if hasattr(self, "update"):
                 self.update()
 
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton and self._duration_ms > 0:
+            pos = getattr(event, "position", lambda: None)()
+            x = pos.x() if pos else event.x()
+            ratio = x / max(1, self.width())
+            position = int(ratio * self._duration_ms)
+            self.seekRequested.emit(position)
+            event.accept()
+        super().mousePressEvent(event)
+
     def set_audio_array(self, audio_array):
         import numpy as np
 
@@ -142,7 +176,11 @@ class WaveformWidget(LabelBase):
             arr = arr.mean(axis=1)
         img = plot_waveform_as_image(arr)
         h, w, _ = img.shape
-        qimg = QtGui.QImage(img.data, w, h, QtGui.QImage.Format_RGBA8888)
+        fmt = getattr(QtGui.QImage, "Format_RGBA8888", None)
+        if fmt is not None:
+            qimg = QtGui.QImage(img.data, w, h, fmt)
+        else:
+            qimg = QtGui.QImage()
         self._pixmap_orig = QtGui.QPixmap.fromImage(qimg)
         self._update_scaled_pixmap()
 
@@ -354,11 +392,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stop_button.setEnabled(False)
         player_row.addWidget(self.stop_button)
 
-        self.position_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.position_slider = SeekSlider(QtCore.Qt.Horizontal)
         self.position_slider.setRange(0, 0)
         player_row.addWidget(self.position_slider)
         self.duration_label = QtWidgets.QLabel("00:00 / 00:00")
         player_row.addWidget(self.duration_label)
+        self.volume_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.volume_slider.setRange(0, 100)
+        self.volume_slider.setValue(100)
+        player_row.addWidget(self.volume_slider)
+        self.volume_label = QtWidgets.QLabel("100%")
+        player_row.addWidget(self.volume_label)
+        self.on_volume_changed(self.volume_slider.value())
         main_layout.addLayout(player_row)
 
         # Autoplay option
@@ -460,6 +505,9 @@ class MainWindow(QtWidgets.QMainWindow):
         safe_connect(self.player.durationChanged, self.on_duration_changed)
         safe_connect(self.player.positionChanged, self.on_position_changed)
         safe_connect(self.position_slider.sliderMoved, self.player.setPosition)
+        safe_connect(self.position_slider.seekRequested, self.player.setPosition)
+        safe_connect(self.waveform.seekRequested, self.player.setPosition)
+        safe_connect(self.volume_slider.valueChanged, self.on_volume_changed)
         self.cb_voice_path: str | None = None
 
         # Status label placed at bottom of layout
@@ -666,6 +714,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_duration_changed(self, duration: int):
         self.position_slider.setMaximum(duration)
+        self.waveform.set_duration(duration)
         self.update_position_label()
 
     def on_position_changed(self, position: int):
@@ -677,6 +726,15 @@ class MainWindow(QtWidgets.QMainWindow):
         pos = self.player.position()
         dur = self.player.duration()
         self.duration_label.setText(f"{self._ms_to_mmss(pos)} / {self._ms_to_mmss(dur)}")
+
+    def on_volume_changed(self, value: int):
+        try:
+            volume = max(0, min(100, int(value))) / 100
+        except Exception:
+            return
+        self.audio_output.setVolume(volume)
+        if hasattr(self.volume_label, "setText"):
+            self.volume_label.setText(f"{int(volume*100)}%")
 
     @staticmethod
     def _ms_to_mmss(ms: int) -> str:
