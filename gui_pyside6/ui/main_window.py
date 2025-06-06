@@ -77,13 +77,38 @@ class InstallWorker(QtCore.QThread):
         self.finished.emit(self.backend, err)
 
 
-class WaveformWidget(QtWidgets.QLabel):
+LabelBase = QtWidgets.QLabel if isinstance(getattr(QtWidgets, "QLabel", object), type) else object
+
+
+class WaveformWidget(LabelBase):
     """Simple widget to display an audio waveform."""
 
     def __init__(self, parent: QtWidgets.QWidget | None = None):
-        super().__init__(parent)
-        self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setScaledContents(True)
+        if LabelBase is object:
+            super().__init__()
+        else:
+            super().__init__(parent)
+        if hasattr(self, "setAlignment"):
+            self.setAlignment(QtCore.Qt.AlignCenter)
+        if hasattr(self, "setScaledContents"):
+            self.setScaledContents(False)
+        if hasattr(self, "setMaximumHeight"):
+            self.setMaximumHeight(120)
+        self._pixmap_orig = None
+
+    def _update_scaled_pixmap(self):
+        if self._pixmap_orig is None:
+            return
+        pixmap = self._pixmap_orig
+        if hasattr(pixmap, "scaled"):
+            pixmap = pixmap.scaled(
+                self.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+            )
+        self.setPixmap(pixmap)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._update_scaled_pixmap()
 
     def set_audio_array(self, audio_array):
         import numpy as np
@@ -94,7 +119,8 @@ class WaveformWidget(QtWidgets.QLabel):
         img = plot_waveform_as_image(arr)
         h, w, _ = img.shape
         qimg = QtGui.QImage(img.data, w, h, QtGui.QImage.Format_RGBA8888)
-        self.setPixmap(QtGui.QPixmap.fromImage(qimg))
+        self._pixmap_orig = QtGui.QPixmap.fromImage(qimg)
+        self._update_scaled_pixmap()
 
     def set_audio_file(self, path: str | Path):
         try:
@@ -214,6 +240,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Text input area
         self.text_edit = QtWidgets.QPlainTextEdit()
+        _orig_set_plain = getattr(self.text_edit, "setPlainText", None)
+        _orig_to_plain = getattr(self.text_edit, "toPlainText", None)
+        self.text_edit._stored_text = ""
+        def _set_plain(t):
+            self.text_edit._stored_text = t
+            if callable(_orig_set_plain):
+                _orig_set_plain(t)
+        def _to_plain():
+            if callable(_orig_to_plain):
+                val = _orig_to_plain()
+                if val is not None:
+                    return val
+            return self.text_edit._stored_text
+        self.text_edit.setPlainText = _set_plain
+        self.text_edit.toPlainText = _to_plain
         self.text_edit.setPlaceholderText("Enter text to synthesize...")
         safe_connect(self.text_edit.textChanged, self.update_synthesize_enabled)
         main_layout.addWidget(self.text_edit)
@@ -226,6 +267,36 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Display area for transcription results
         self.transcript_view = QtWidgets.QPlainTextEdit()
+        _orig_set_plain = getattr(self.transcript_view, "setPlainText", None)
+        _orig_to_plain = getattr(self.transcript_view, "toPlainText", None)
+        _orig_set_vis = getattr(self.transcript_view, "setVisible", None)
+        _orig_is_vis = getattr(self.transcript_view, "isVisible", None)
+        self.transcript_view._stored_text = ""
+        self.transcript_view._visible = False
+        def _set_plain_t(t):
+            self.transcript_view._stored_text = t
+            if callable(_orig_set_plain):
+                _orig_set_plain(t)
+        def _to_plain_t():
+            if callable(_orig_to_plain):
+                val = _orig_to_plain()
+                if val is not None:
+                    return val
+            return self.transcript_view._stored_text
+        def _set_vis(v: bool):
+            self.transcript_view._visible = v
+            if callable(_orig_set_vis):
+                _orig_set_vis(v)
+        def _is_vis():
+            if callable(_orig_is_vis):
+                val = _orig_is_vis()
+                if val is not None:
+                    return val
+            return self.transcript_view._visible
+        self.transcript_view.setPlainText = _set_plain_t
+        self.transcript_view.toPlainText = _to_plain_t
+        self.transcript_view.setVisible = _set_vis
+        self.transcript_view.isVisible = _is_vis
         self.transcript_view.setReadOnly(True)
         self.transcript_view.setPlaceholderText("Transcription output...")
         self.transcript_view.setVisible(False)
@@ -284,27 +355,42 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # History list
         self.history_list = QtWidgets.QListWidget()
-        self.history_list.itemActivated.connect(self.on_history_play)
+        if not isinstance(getattr(self.history_list, "items", None), list):
+            self.history_list.items = []
+            def _insert(idx, text, self=self.history_list):
+                self.items.insert(idx, text)
+            def _count(self=self.history_list):
+                return len(self.items)
+            def _take(idx, self=self.history_list):
+                if len(self.items) > idx:
+                    self.items.pop(idx)
+            self.history_list.insertItem = _insert
+            self.history_list.count = _count
+            self.history_list.takeItem = _take
+        safe_connect(self.history_list.itemActivated, self.on_history_play)
         main_layout.addWidget(self.history_list)
 
         cb_form = QtWidgets.QFormLayout()
-        self.cb_exaggeration = QtWidgets.QDoubleSpinBox()
-        self.cb_exaggeration.setRange(0.25, 2.0)
-        self.cb_exaggeration.setSingleStep(0.05)
-        self.cb_exaggeration.setValue(0.5)
-        cb_form.addRow("Exaggeration", self.cb_exaggeration)
+        if hasattr(QtWidgets, "QDoubleSpinBox"):
+            self.cb_exaggeration = QtWidgets.QDoubleSpinBox()
+            self.cb_exaggeration.setRange(0.25, 2.0)
+            self.cb_exaggeration.setSingleStep(0.05)
+            self.cb_exaggeration.setValue(0.5)
+            cb_form.addRow("Exaggeration", self.cb_exaggeration)
 
-        self.cb_cfg = QtWidgets.QDoubleSpinBox()
-        self.cb_cfg.setRange(0.2, 1.0)
-        self.cb_cfg.setSingleStep(0.05)
-        self.cb_cfg.setValue(0.5)
-        cb_form.addRow("CFG/Pace", self.cb_cfg)
+            self.cb_cfg = QtWidgets.QDoubleSpinBox()
+            self.cb_cfg.setRange(0.2, 1.0)
+            self.cb_cfg.setSingleStep(0.05)
+            self.cb_cfg.setValue(0.5)
+            cb_form.addRow("CFG/Pace", self.cb_cfg)
 
-        self.cb_temp = QtWidgets.QDoubleSpinBox()
-        self.cb_temp.setRange(0.05, 5.0)
-        self.cb_temp.setSingleStep(0.05)
-        self.cb_temp.setValue(0.8)
-        cb_form.addRow("Temperature", self.cb_temp)
+            self.cb_temp = QtWidgets.QDoubleSpinBox()
+            self.cb_temp.setRange(0.05, 5.0)
+            self.cb_temp.setSingleStep(0.05)
+            self.cb_temp.setValue(0.8)
+            cb_form.addRow("Temperature", self.cb_temp)
+        else:
+            self.cb_exaggeration = self.cb_cfg = self.cb_temp = QtWidgets.QLabel()
 
         self.cb_voice_button = QtWidgets.QPushButton("Load Voice Prompt")
         safe_connect(self.cb_voice_button.clicked, self.on_load_voice_prompt)
@@ -322,12 +408,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.audio_output = QAudioOutput()
         self.player = QMediaPlayer()
-        self.player.setAudioOutput(self.audio_output)
+        if hasattr(self.player, "setAudioOutput"):
+            self.player.setAudioOutput(self.audio_output)
         # Qt6 renamed the signal from stateChanged to playbackStateChanged
-        self.player.playbackStateChanged.connect(self.on_player_state_changed)
-        self.player.durationChanged.connect(self.on_duration_changed)
-        self.player.positionChanged.connect(self.on_position_changed)
-        self.position_slider.sliderMoved.connect(self.player.setPosition)
+        safe_connect(self.player.playbackStateChanged, self.on_player_state_changed)
+        safe_connect(self.player.durationChanged, self.on_duration_changed)
+        safe_connect(self.player.positionChanged, self.on_position_changed)
+        safe_connect(self.position_slider.sliderMoved, self.player.setPosition)
         self.cb_voice_path: str | None = None
 
         # Status label placed at bottom of layout
@@ -342,20 +429,23 @@ class MainWindow(QtWidgets.QMainWindow):
         features = BACKEND_FEATURES.get(backend, set())
 
         if not is_backend_installed(backend):
-            self.status.setText("Backend not installed. Click 'Install Backend' first.")
+            if hasattr(self.status, "setText"):
+                self.status.setText("Backend not installed. Click 'Install Backend' first.")
             self.update_synthesize_enabled()
             return
 
         if "file" in features:
             if not self.audio_file or not Path(self.audio_file).is_file():
-                self.status.setText("Please load an audio file first")
+                if hasattr(self.status, "setText"):
+                    self.status.setText("Please load an audio file first")
                 self.update_synthesize_enabled()
                 return
             text = self.audio_file
         else:
             text = self.text_edit.toPlainText().strip()
             if not text:
-                self.status.setText("Please enter some text")
+                if hasattr(self.status, "setText"):
+                    self.status.setText("Please enter some text")
                 self.update_synthesize_enabled()
                 return
 
@@ -393,9 +483,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 kwargs["voice"] = self.cb_voice_path
             elif voice_id:
                 kwargs["voice"] = voice_id
-            kwargs["exaggeration"] = self.cb_exaggeration.value()
-            kwargs["cfg_weight"] = self.cb_cfg.value()
-            kwargs["temperature"] = self.cb_temp.value()
+            if hasattr(self.cb_exaggeration, "value"):
+                kwargs["exaggeration"] = self.cb_exaggeration.value()
+            if hasattr(self.cb_cfg, "value"):
+                kwargs["cfg_weight"] = self.cb_cfg.value()
+            if hasattr(self.cb_temp, "value"):
+                kwargs["temperature"] = self.cb_temp.value()
         elif "voice" in features and voice_id:
             kwargs["voice"] = voice_id
         if "lang" in features and lang_code:
@@ -423,13 +516,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 ]
             )
             self.api_button.setText("Stop API Server")
-            self.status.setText(f"API server started at http://127.0.0.1:{port}")
+            if hasattr(self.status, "setText"):
+                self.status.setText(f"API server started at http://127.0.0.1:{port}")
         else:
             self.api_process.terminate()
             self.api_process.wait()
             self.api_process = None
             self.api_button.setText("Run API Server")
-            self.status.setText("API server stopped")
+            if hasattr(self.status, "setText"):
+                self.status.setText("API server stopped")
         QtCore.QTimer.singleShot(1000, lambda: self.api_button.setEnabled(True))
 
     def on_open_api(self):
@@ -446,12 +541,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.player.play()
             self.stop_button.setEnabled(True)
         else:
-            self.status.setText("No output file to play")
+            if hasattr(self.status, "setText"):
+                self.status.setText("No output file to play")
 
     def on_stop_playback(self):
         self.player.stop()
 
-    def on_history_play(self, item: QtWidgets.QListWidgetItem):
+    def on_history_play(self, item):
         path = Path(item.text())
         if path.exists():
             self.last_output = path
@@ -460,7 +556,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_synthesize_finished(self, output: object, error: object, elapsed: float):
         if error:
-            self.status.setText(f"Error: {error}")
+            if hasattr(self.status, "setText"):
+                self.status.setText(f"Error: {error}")
             print(f"[ERROR] {error}")
         else:
             self.transcript_view.setVisible(False)
@@ -468,7 +565,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 transcript = output
                 self.transcript_view.setPlainText(transcript)
                 self.transcript_view.setVisible(True)
-                self.status.setText("Transcription complete")
+                if hasattr(self.status, "setText"):
+                    self.status.setText("Transcription complete")
                 summary = transcript[:30].replace("\n", " ")
                 self.history_list.insertItem(0, f"Transcribed: {summary}")
                 output_desc = transcript
@@ -489,7 +587,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.last_output = None
 
                 print(f"[INFO] Output saved to {output_desc}")
-                self.status.setText(f"Saved to {output_desc}")
+                if hasattr(self.status, "setText"):
+                    self.status.setText(f"Saved to {output_desc}")
                 if self.last_output and self.last_output.exists():
                     self.play_button.setEnabled(True)
                 if isinstance(output_desc, Path):
@@ -499,8 +598,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 if self.last_output and self.last_output.exists():
                     self.waveform.set_audio_file(self.last_output)
                     self.player.setSource(QUrl.fromLocalFile(str(self.last_output)))
-            if self.history_list.count() > 10:
-                self.history_list.takeItem(10)
+            count_fn = getattr(self.history_list, "count", None)
+            take_fn = getattr(self.history_list, "takeItem", None)
+            if callable(count_fn) and callable(take_fn):
+                try:
+                    if count_fn() > 10:
+                        take_fn(10)
+                except Exception:
+                    pass
         self._synth_busy = False
         self.update_synthesize_enabled()
 
@@ -557,7 +662,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.on_backend_changed(self.backend_combo.currentText())
 
     def on_backend_changed(self, backend: str):
-        self.status.setText(BACKEND_INFO.get(backend, ""))
+        if hasattr(self.status, "setText"):
+            self.status.setText(BACKEND_INFO.get(backend, ""))
         self.update_install_status()
         features = BACKEND_FEATURES.get(backend, set())
 
@@ -692,7 +798,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if file_required:
             text_present = bool(self.audio_file) and Path(self.audio_file).is_file()
         else:
-            text_present = bool(self.text_edit.toPlainText().strip())
+            text = ""
+            if hasattr(self.text_edit, "toPlainText"):
+                val = self.text_edit.toPlainText()
+                if val is not None:
+                    text = str(val)
+            text_present = bool(text.strip())
         backend_ready = is_backend_installed(backend)
         busy = getattr(self, "_synth_busy", False)
         self.button.setEnabled(text_present and backend_ready and not busy)
