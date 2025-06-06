@@ -4,7 +4,7 @@ import sys
 import webbrowser
 from datetime import datetime
 import time
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtCore import QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
@@ -26,6 +26,7 @@ from ..utils.create_base_filename import create_base_filename
 from ..utils.open_folder import open_folder
 from ..utils.preferences import load_preferences, save_preferences
 from ..utils.timer import Timer
+from ..utils.waveform_plot import plot_waveform_as_image
 from .preferences import PreferencesDialog
 
 OUTPUT_DIR = Path("outputs")
@@ -76,6 +77,34 @@ class InstallWorker(QtCore.QThread):
         self.finished.emit(self.backend, err)
 
 
+class WaveformWidget(QtWidgets.QLabel):
+    """Simple widget to display an audio waveform."""
+
+    def __init__(self, parent: QtWidgets.QWidget | None = None):
+        super().__init__(parent)
+        self.setAlignment(QtCore.Qt.AlignCenter)
+        self.setScaledContents(True)
+
+    def set_audio_array(self, audio_array):
+        import numpy as np
+
+        arr = np.asarray(audio_array)
+        if arr.ndim > 1:
+            arr = arr.mean(axis=1)
+        img = plot_waveform_as_image(arr)
+        h, w, _ = img.shape
+        qimg = QtGui.QImage(img.data, w, h, QtGui.QImage.Format_RGBA8888)
+        self.setPixmap(QtGui.QPixmap.fromImage(qimg))
+
+    def set_audio_file(self, path: str | Path):
+        try:
+            import soundfile as sf
+            data, _ = sf.read(str(path))
+        except Exception as e:
+            print(f"[WARN] Failed to load waveform from {path}: {e}")
+            self.clear()
+            return
+        self.set_audio_array(data)
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -102,20 +131,26 @@ class MainWindow(QtWidgets.QMainWindow):
 
         main_layout = QtWidgets.QVBoxLayout(central)
 
+        def safe_connect(signal, slot):
+            try:
+                signal.connect(slot)
+            except Exception:
+                pass
+
         # Status label created early so signal handlers can reference it
         self.status = QtWidgets.QLabel()
 
         # --- Backend selection tabs ---
         model_row = QtWidgets.QHBoxLayout()
         self.tabs = QtWidgets.QTabWidget()
-        self.tabs.currentChanged.connect(self.on_tab_changed)
+        safe_connect(self.tabs.currentChanged, self.on_tab_changed)
 
         tts_tab = QtWidgets.QWidget()
         tts_layout = QtWidgets.QVBoxLayout(tts_tab)
         self.tts_combo = QtWidgets.QComboBox()
         self.tts_combo.addItems(TTS_BACKENDS)
-        self.tts_combo.currentTextChanged.connect(self.on_backend_changed)
-        self.tts_combo.currentTextChanged.connect(self.update_synthesize_enabled)
+        safe_connect(self.tts_combo.currentTextChanged, self.on_backend_changed)
+        safe_connect(self.tts_combo.currentTextChanged, self.update_synthesize_enabled)
         tts_layout.addWidget(self.tts_combo)
         self.tabs.addTab(tts_tab, "TTS Engines")
 
@@ -123,8 +158,8 @@ class MainWindow(QtWidgets.QMainWindow):
         tools_layout = QtWidgets.QVBoxLayout(tools_tab)
         self.tools_combo = QtWidgets.QComboBox()
         self.tools_combo.addItems(TOOL_BACKENDS)
-        self.tools_combo.currentTextChanged.connect(self.on_backend_changed)
-        self.tools_combo.currentTextChanged.connect(self.update_synthesize_enabled)
+        safe_connect(self.tools_combo.currentTextChanged, self.on_backend_changed)
+        safe_connect(self.tools_combo.currentTextChanged, self.update_synthesize_enabled)
         tools_layout.addWidget(self.tools_combo)
         self.tabs.addTab(tools_tab, "Audio Tools")
 
@@ -132,15 +167,15 @@ class MainWindow(QtWidgets.QMainWindow):
         exp_layout = QtWidgets.QVBoxLayout(exp_tab)
         self.exp_combo = QtWidgets.QComboBox()
         self.exp_combo.addItems(EXPERIMENTAL_BACKENDS)
-        self.exp_combo.currentTextChanged.connect(self.on_backend_changed)
-        self.exp_combo.currentTextChanged.connect(self.update_synthesize_enabled)
+        safe_connect(self.exp_combo.currentTextChanged, self.on_backend_changed)
+        safe_connect(self.exp_combo.currentTextChanged, self.update_synthesize_enabled)
         exp_layout.addWidget(self.exp_combo)
         self.tabs.addTab(exp_tab, "Experimental")
 
         model_row.addWidget(self.tabs)
 
         self.install_button = QtWidgets.QPushButton("Install Backend")
-        self.install_button.clicked.connect(self.on_install_backend)
+        safe_connect(self.install_button.clicked, self.on_install_backend)
         model_row.addWidget(self.install_button)
         main_layout.addLayout(model_row)
 
@@ -180,12 +215,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # Text input area
         self.text_edit = QtWidgets.QPlainTextEdit()
         self.text_edit.setPlaceholderText("Enter text to synthesize...")
-        self.text_edit.textChanged.connect(self.update_synthesize_enabled)
+        safe_connect(self.text_edit.textChanged, self.update_synthesize_enabled)
         main_layout.addWidget(self.text_edit)
 
         self.audio_file: str | None = None
         self.load_audio_button = QtWidgets.QPushButton("Load Audio File")
-        self.load_audio_button.clicked.connect(self.on_load_audio)
+        safe_connect(self.load_audio_button.clicked, self.on_load_audio)
         self.load_audio_button.setVisible(False)
         main_layout.addWidget(self.load_audio_button)
 
@@ -198,24 +233,29 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Synthesize button
         self.button = QtWidgets.QPushButton("Synthesize")
-        self.button.clicked.connect(self.on_synthesize)
+        safe_connect(self.button.clicked, self.on_synthesize)
         main_layout.addWidget(self.button)
+
+        self.waveform = WaveformWidget()
+        main_layout.addWidget(self.waveform)
 
         # --- Mini player row ---
         player_row = QtWidgets.QHBoxLayout()
         self.play_button = QtWidgets.QPushButton("Play")
-        self.play_button.clicked.connect(self.on_play_output)
+        safe_connect(self.play_button.clicked, self.on_play_output)
         self.play_button.setEnabled(False)
         player_row.addWidget(self.play_button)
 
         self.stop_button = QtWidgets.QPushButton("Stop")
-        self.stop_button.clicked.connect(self.on_stop_playback)
+        safe_connect(self.stop_button.clicked, self.on_stop_playback)
         self.stop_button.setEnabled(False)
         player_row.addWidget(self.stop_button)
 
         self.position_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.position_slider.setRange(0, 0)
         player_row.addWidget(self.position_slider)
+        self.duration_label = QtWidgets.QLabel("00:00 / 00:00")
+        player_row.addWidget(self.duration_label)
         main_layout.addLayout(player_row)
 
         # Autoplay option
@@ -226,19 +266,19 @@ class MainWindow(QtWidgets.QMainWindow):
         # --- Misc buttons row ---
         misc_row = QtWidgets.QHBoxLayout()
         self.api_button = QtWidgets.QPushButton("Run API Server")
-        self.api_button.clicked.connect(self.on_api_server_toggle)
+        safe_connect(self.api_button.clicked, self.on_api_server_toggle)
         misc_row.addWidget(self.api_button)
 
         self.open_api_button = QtWidgets.QPushButton("Open API Docs")
-        self.open_api_button.clicked.connect(self.on_open_api)
+        safe_connect(self.open_api_button.clicked, self.on_open_api)
         misc_row.addWidget(self.open_api_button)
 
         self.open_button = QtWidgets.QPushButton("Open Output Folder")
-        self.open_button.clicked.connect(self.on_open_output)
+        safe_connect(self.open_button.clicked, self.on_open_output)
         misc_row.addWidget(self.open_button)
 
         self.pref_button = QtWidgets.QPushButton("Preferences")
-        self.pref_button.clicked.connect(self.on_preferences)
+        safe_connect(self.pref_button.clicked, self.on_preferences)
         misc_row.addWidget(self.pref_button)
         main_layout.addLayout(misc_row)
 
@@ -267,7 +307,7 @@ class MainWindow(QtWidgets.QMainWindow):
         cb_form.addRow("Temperature", self.cb_temp)
 
         self.cb_voice_button = QtWidgets.QPushButton("Load Voice Prompt")
-        self.cb_voice_button.clicked.connect(self.on_load_voice_prompt)
+        safe_connect(self.cb_voice_button.clicked, self.on_load_voice_prompt)
         cb_form.addRow(self.cb_voice_button)
 
         self.chatterbox_opts = QtWidgets.QGroupBox("Chatterbox Options")
@@ -285,8 +325,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.player.setAudioOutput(self.audio_output)
         # Qt6 renamed the signal from stateChanged to playbackStateChanged
         self.player.playbackStateChanged.connect(self.on_player_state_changed)
-        self.player.durationChanged.connect(self.position_slider.setMaximum)
-        self.player.positionChanged.connect(self.position_slider.setValue)
+        self.player.durationChanged.connect(self.on_duration_changed)
+        self.player.positionChanged.connect(self.on_position_changed)
         self.position_slider.sliderMoved.connect(self.player.setPosition)
         self.cb_voice_path: str | None = None
 
@@ -456,6 +496,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.history_list.insertItem(0, str(output_desc))
                 if self.autoplay_check.isChecked() and self.last_output:
                     self.on_play_output()
+                if self.last_output and self.last_output.exists():
+                    self.waveform.set_audio_file(self.last_output)
+                    self.player.setSource(QUrl.fromLocalFile(str(self.last_output)))
             if self.history_list.count() > 10:
                 self.history_list.takeItem(10)
         self._synth_busy = False
@@ -465,6 +508,24 @@ class MainWindow(QtWidgets.QMainWindow):
         if state == QMediaPlayer.StoppedState:
             self.stop_button.setEnabled(False)
 
+    def on_duration_changed(self, duration: int):
+        self.position_slider.setMaximum(duration)
+        self.update_position_label()
+
+    def on_position_changed(self, position: int):
+        self.position_slider.setValue(position)
+        self.update_position_label()
+
+    def update_position_label(self):
+        pos = self.player.position()
+        dur = self.player.duration()
+        self.duration_label.setText(f"{self._ms_to_mmss(pos)} / {self._ms_to_mmss(dur)}")
+
+    @staticmethod
+    def _ms_to_mmss(ms: int) -> str:
+        seconds = int(ms / 1000)
+        return f"{seconds // 60:02d}:{seconds % 60:02d}"
+
     def on_load_audio(self):
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Select Audio File", str(Path.home()), "Audio Files (*.wav *.mp3 *.flac);;All Files (*)"
@@ -472,6 +533,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if file_path:
             self.audio_file = file_path
             self.load_audio_button.setText(Path(file_path).name)
+
+            self.waveform.set_audio_file(file_path)
+            self.player.setSource(QUrl.fromLocalFile(file_path))
 
             self.update_synthesize_enabled()
 
