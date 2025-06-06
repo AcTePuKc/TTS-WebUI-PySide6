@@ -206,9 +206,35 @@ def ensure_backend_installed(name: str) -> None:
 def uninstall_backend(name: str) -> None:
     """Uninstall packages for the given backend if present."""
     packages = _get_backend_packages(name)
-    if packages:
-        uninstall_package_from_venv([_get_distribution_name(p) for p in packages])
-        _log_action("uninstall", name, packages)
+    if not packages:
+        return
+
+    # Determine which packages are still required by other installed backends
+    used_by_others: set[str] = set()
+    if _REQ_FILE.exists():
+        with _REQ_FILE.open() as f:
+            all_reqs: dict[str, list[str]] = json.load(f)
+        for other, reqs in all_reqs.items():
+            if other == name:
+                continue
+            if is_backend_installed(other):
+                used_by_others.update(_get_distribution_name(p) for p in reqs)
+
+    uninstall_list: list[str] = []
+    skipped: list[str] = []
+    for pkg in packages:
+        dist = _get_distribution_name(pkg)
+        if dist in used_by_others:
+            skipped.append(pkg)
+        else:
+            uninstall_list.append(dist)
+
+    if uninstall_list:
+        uninstall_package_from_venv(uninstall_list)
+        _log_action("uninstall", name, [p for p in packages if _get_distribution_name(p) in uninstall_list])
+
+    if skipped:
+        _log_action("skip_uninstall", name, skipped)
 
 
 def _log_action(action: str, name: str, packages: list[str]) -> None:

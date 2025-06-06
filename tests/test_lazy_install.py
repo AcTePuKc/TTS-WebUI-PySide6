@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 from unittest import mock
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -56,3 +57,20 @@ def test_uninstall_backend_passes_distribution_names():
         with mock.patch('gui_pyside6.backend.uninstall_package_from_venv') as uninstall:
             uninstall_backend('dummy')
             uninstall.assert_called_once_with(['foo', 'bar'])
+
+
+def test_uninstall_skips_shared_dependencies(tmp_path):
+    req_file = tmp_path / 'req.json'
+    data = {
+        'backend_a': ['foo==1', 'only_a==1'],
+        'backend_b': ['foo==1']
+    }
+    req_file.write_text(json.dumps(data))
+
+    with mock.patch('gui_pyside6.backend._REQ_FILE', req_file):
+        with mock.patch('gui_pyside6.backend.is_backend_installed', side_effect=lambda n: n == 'backend_b'):
+            with mock.patch('gui_pyside6.backend.uninstall_package_from_venv') as uninstall, \
+                 mock.patch('gui_pyside6.backend._log_action') as log:
+                uninstall_backend('backend_a')
+                uninstall.assert_called_once_with(['only_a'])
+                log.assert_any_call('skip_uninstall', 'backend_a', ['foo==1'])
