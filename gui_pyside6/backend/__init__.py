@@ -49,6 +49,7 @@ BACKEND_FEATURES: dict[str, set[str]] = {
     "vocos": {"file"},
     "kokoro": {"voice", "rate", "seed"},
     "chatterbox": {"voice", "seed"},
+    "whisper": {"file"},
 }
 
 _LOG_DIR = Path.home() / ".hybrid_tts"
