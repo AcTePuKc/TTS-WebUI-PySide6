@@ -339,36 +339,37 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_synthesize_enabled()
 
     def on_synthesize(self):
-        text = self.text_edit.toPlainText().strip()
-        if not text:
-            self.status.setText("Please enter some text")
-            self.update_synthesize_enabled()
-            return
-
-        if len(text) > MAX_TEXT_LENGTH:
-            reply = QtWidgets.QMessageBox.question(
-                self,
-                "Long Input",
-                f"The text is {len(text)} characters long. Continue?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-            )
-            if reply != QtWidgets.QMessageBox.Yes:
-                self.update_synthesize_enabled()
-                return
-
         backend = self.backend_combo.currentText()
+        features = BACKEND_FEATURES.get(backend, set())
+
         if not is_backend_installed(backend):
             self.status.setText("Backend not installed. Click 'Install Backend' first.")
             self.update_synthesize_enabled()
             return
 
-        if backend in {"demucs", "vocos"}:
-            # These tools operate on audio files rather than text
+        if "file" in features:
             if not self.audio_file or not Path(self.audio_file).is_file():
                 self.status.setText("Please load an audio file first")
                 self.update_synthesize_enabled()
                 return
             text = self.audio_file
+        else:
+            text = self.text_edit.toPlainText().strip()
+            if not text:
+                self.status.setText("Please enter some text")
+                self.update_synthesize_enabled()
+                return
+
+            if len(text) > MAX_TEXT_LENGTH:
+                reply = QtWidgets.QMessageBox.question(
+                    self,
+                    "Long Input",
+                    f"The text is {len(text)} characters long. Continue?",
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                )
+                if reply != QtWidgets.QMessageBox.Yes:
+                    self.update_synthesize_enabled()
+                    return
 
 
         self._synth_busy = True
