@@ -20,7 +20,7 @@ pydantic==2.10.6
 accelerate>=0.33.0
 
 # Optional (platform specific)
-# matplotlib
+matplotlib
 
 # Other
 deprecated >= 1.2.13
