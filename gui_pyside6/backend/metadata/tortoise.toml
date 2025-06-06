@@ -1,0 +1,3 @@
+package = "tortoise-tts"
+repo_url = "https://github.com/neonbjb/tortoise-tts"
+description = "Tortoise high quality TTS (experimental)."

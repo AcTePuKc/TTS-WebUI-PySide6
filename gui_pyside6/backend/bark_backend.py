@@ -3,9 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 # Bark is a heavy dependency that may not be installed by default.
-# The backend_requirements.json maps the "bark" backend to
-# `extension_bark` which provides the Bark TTS implementation.
-# This backend provides a thin wrapper that calls the library if present.
+# Metadata in ``backend/metadata/bark.toml`` describes the package
+# and repository used for installation. This backend provides a thin
+# wrapper that calls the library if present.
 
 def synthesize_to_file(
     text: str,

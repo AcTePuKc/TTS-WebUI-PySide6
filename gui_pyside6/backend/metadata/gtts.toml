@@ -1,0 +1,3 @@
+package = "gTTS"
+repo_url = "https://github.com/pndurette/gTTS"
+description = "Google Text-to-Speech (online)."

@@ -1,0 +1,3 @@
+package = "transformers"
+repo_url = "https://github.com/facebookresearch/seamless_communication"
+description = "Meta multilingual speech synthesis."

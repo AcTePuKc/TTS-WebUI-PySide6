@@ -1,0 +1,3 @@
+package = "pyttsx3"
+repo_url = "https://github.com/nateshmbhat/pyttsx3"
+description = "Offline TTS engine using system voices."

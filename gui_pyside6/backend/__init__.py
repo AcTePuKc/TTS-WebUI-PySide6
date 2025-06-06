@@ -15,6 +15,25 @@ from ..utils.install_utils import (
     uninstall_package_from_venv,
 )
 
+_METADATA_DIR = Path(__file__).with_name("metadata")
+_BACKEND_METADATA: dict[str, dict[str, str]] = {}
+if _METADATA_DIR.exists():
+    try:
+        import tomllib  # Python 3.11+
+
+        for path in _METADATA_DIR.glob("*.toml"):
+            with path.open("rb") as f:
+                _BACKEND_METADATA[path.stem] = tomllib.load(f)
+    except Exception:
+        pass
+
+def get_backend_repo(name: str) -> str | None:
+    return _BACKEND_METADATA.get(name, {}).get("repo_url")
+
+def get_backend_package(name: str) -> str | None:
+    return _BACKEND_METADATA.get(name, {}).get("package")
+
+
 def _call_backend(module: str, func: str, *args, **kwargs):
     """Import the given backend module on demand and run the requested function."""
     mod = importlib.import_module(f".{module}", __name__)
@@ -54,17 +73,7 @@ BACKEND_FEATURES: dict[str, set[str]] = {
 
 # Short descriptions for each backend shown in the UI
 BACKEND_INFO: dict[str, str] = {
-    "pyttsx3": "Offline TTS engine using system voices.",
-    "gtts": "Google Text-to-Speech (online).",
-    "bark": "Suno Bark generative TTS (experimental).",
-    "tortoise": "Tortoise high quality TTS (experimental).",
-    "edge_tts": "Microsoft Edge cloud voices.",
-    "demucs": "Split audio into vocal/instrument stems.",
-    "mms": "Meta multilingual speech synthesis.",
-    "vocos": "Neural codec audio reconstruction tool.",
-    "kokoro": "Kokoro TTS with voice presets.",
-    "chatterbox": "Voice cloning from prompts.",
-    "whisper": "OpenAI Whisper speech-to-text.",
+    name: data.get("description", "") for name, data in _BACKEND_METADATA.items()
 }
 
 # Categorize backends for the PySide6 UI. Stable text-to-speech engines are

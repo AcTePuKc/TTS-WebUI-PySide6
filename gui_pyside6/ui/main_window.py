@@ -12,6 +12,7 @@ from ..backend import (
     BACKENDS,
     BACKEND_FEATURES,
     BACKEND_INFO,
+    get_backend_repo,
     TTS_BACKENDS,
     TOOL_BACKENDS,
     EXPERIMENTAL_BACKENDS,
@@ -810,7 +811,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def on_install_backend(self):
         backend = self.backend_combo.currentText()
         self.install_button.setEnabled(False)
-        self.status.setText(f"Installing {backend}...")
+        repo = get_backend_repo(backend)
+        if repo:
+            self.status.setText(f"Installing {backend} from {repo}...")
+        else:
+            self.status.setText(f"Installing {backend}...")
         self.install_worker = InstallWorker(backend)
         self.install_worker.finished.connect(self.on_install_finished)
         self.install_worker.start()
