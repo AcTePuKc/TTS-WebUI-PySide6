@@ -66,7 +66,18 @@ class DummyQTabWidget:
 qtwidgets_mod.QTabWidget = DummyQTabWidget
 qtwidgets_mod.QListWidget = DummyListWidget
 qtwidgets_mod.QListWidgetItem = Dummy
-qtwidgets_mod.QPushButton = Dummy
+class DummyPushButton:
+    def __init__(self, text='', *a, **k):
+        self._text = text
+        self.clicked = DummySignal()
+    def setText(self, t):
+        self._text = t
+    def text(self):
+        return self._text
+    def __getattr__(self, name):
+        return lambda *a, **k: None
+
+qtwidgets_mod.QPushButton = DummyPushButton
 qtwidgets_mod.QCheckBox = Dummy
 
 class DummyPlainTextEdit:
@@ -126,7 +137,26 @@ sys.modules['PySide6.QtMultimedia'] = qtmultimedia
 import importlib
 from gui_pyside6.utils import preferences as prefs
 
+
+def _setup_pyside6_stubs():
+    saved = {m: sys.modules[m] for m in list(sys.modules) if m.startswith('PySide6')}
+    for m in list(saved):
+        sys.modules.pop(m)
+
+    pyside6 = types.ModuleType('PySide6')
+    pyside6.QtCore = qtcore_mod
+    pyside6.QtWidgets = qtwidgets_mod
+    pyside6.QtGui = qtgui_mod
+    pyside6.QtMultimedia = qtmultimedia
+    sys.modules['PySide6'] = pyside6
+    sys.modules['PySide6.QtCore'] = qtcore_mod
+    sys.modules['PySide6.QtWidgets'] = qtwidgets_mod
+    sys.modules['PySide6.QtGui'] = qtgui_mod
+    sys.modules['PySide6.QtMultimedia'] = qtmultimedia
+    return saved
+
 def test_history_list_populated(tmp_path):
+    saved = _setup_pyside6_stubs()
     prefs.PREF_FILE = tmp_path / 'prefs.json'
     prefs.save_preferences({})
 
@@ -146,9 +176,14 @@ def test_history_list_populated(tmp_path):
 
     assert window.last_output == out_path
     assert window.history_list.items[0] == str(out_path)
+    for m in list(sys.modules):
+        if m.startswith('PySide6'):
+            sys.modules.pop(m)
+    sys.modules.update(saved)
 
 
 def test_transcription_results_displayed(tmp_path):
+    saved = _setup_pyside6_stubs()
     prefs.PREF_FILE = tmp_path / 'prefs.json'
     prefs.save_preferences({})
 
@@ -167,9 +202,14 @@ def test_transcription_results_displayed(tmp_path):
     assert window.transcript_view.toPlainText() == "hello world"
     assert window.transcript_view.isVisible()
     assert window.history_list.items[0].startswith("Transcribed:")
+    for m in list(sys.modules):
+        if m.startswith('PySide6'):
+            sys.modules.pop(m)
+    sys.modules.update(saved)
 
 
 def test_list_of_paths_handled(tmp_path):
+    saved = _setup_pyside6_stubs()
     prefs.PREF_FILE = tmp_path / 'prefs.json'
     prefs.save_preferences({})
 
@@ -192,4 +232,76 @@ def test_list_of_paths_handled(tmp_path):
     assert window.last_output == p1
     assert window.history_list.items[0] == str(p1)
     assert window.history_list.items[1] == str(p2)
+    for m in list(sys.modules):
+        if m.startswith('PySide6'):
+            sys.modules.pop(m)
+    sys.modules.update(saved)
+
+
+def test_whisper_does_not_leave_busy(tmp_path):
+    saved = _setup_pyside6_stubs()
+    prefs.PREF_FILE = tmp_path / 'prefs.json'
+    prefs.save_preferences({})
+
+    import importlib
+    import gui_pyside6.ui.main_window as main_window
+    importlib.reload(main_window)
+
+    main_window.is_backend_installed = lambda name: True
+    main_window.TRANSCRIBERS['whisper'] = lambda audio, output, **kw: 'ok'
+
+    class DummyWorker:
+        def __init__(self, func, text, output, kwargs):
+            self.func = func
+            self.text = text
+            self.output = output
+            self.kwargs = kwargs
+            self.finished = types.SimpleNamespace(connect=lambda cb: setattr(self, '_cb', cb))
+
+        def start(self):
+            result = self.func(self.text, self.output, **self.kwargs)
+            if hasattr(self, '_cb'):
+                self._cb(result, None, 0.0)
+
+    main_window.SynthesizeWorker = DummyWorker
+
+    window = main_window.MainWindow()
+    window.autoplay_check = types.SimpleNamespace(isChecked=lambda: False)
+    window.backend_combo.currentText = lambda: 'whisper'
+    audio = tmp_path / 'in.wav'
+    audio.write_text('dummy')
+    window.audio_file = str(audio)
+
+    window.on_synthesize()
+
+    assert not window._synth_busy
+    for m in list(sys.modules):
+        if m.startswith('PySide6'):
+            sys.modules.pop(m)
+    sys.modules.update(saved)
+
+
+def test_button_label_updates_by_backend(tmp_path):
+    saved = _setup_pyside6_stubs()
+    prefs.PREF_FILE = tmp_path / 'prefs.json'
+    prefs.save_preferences({})
+
+    import importlib
+    import gui_pyside6.ui.main_window as main_window
+    importlib.reload(main_window)
+
+    main_window.is_backend_installed = lambda name: True
+
+    window = main_window.MainWindow()
+    assert window.button.text() == "Synthesize"
+
+    window.on_backend_changed('whisper')
+    assert window.button.text() == "Transcribe"
+
+    window.on_backend_changed('pyttsx3')
+    assert window.button.text() == "Synthesize"
+    for m in list(sys.modules):
+        if m.startswith('PySide6'):
+            sys.modules.pop(m)
+    sys.modules.update(saved)
 
