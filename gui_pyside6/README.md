@@ -38,6 +38,9 @@ Backend packages are defined in `backend/backend_requirements.json`. Installatio
 - Experimental audio reconstruction with **Vocos**.
 - Music source separation with **Demucs**. Load an audio file and the backend
   generates individual stem tracks.
+- Some tools may output a folder of audio files instead of a single file. The
+  application adds the folder path to the history list and treats the first file
+  as the last output.
 - Optional UI translations. Place custom `.qm` and `.json` files under
   `~/.hybrid_tts/translations`.
 

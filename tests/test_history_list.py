@@ -143,3 +143,28 @@ def test_transcription_results_displayed(tmp_path):
     assert window.transcript_view.toPlainText() == "hello world"
     assert window.transcript_view.isVisible()
     assert window.history_list.items[0].startswith("Transcribed:")
+
+
+def test_list_of_paths_handled(tmp_path):
+    prefs.PREF_FILE = tmp_path / 'prefs.json'
+    prefs.save_preferences({})
+
+    import importlib
+    import gui_pyside6.ui.main_window as main_window
+    importlib.reload(main_window)
+
+    main_window.is_backend_installed = lambda name: True
+
+    window = main_window.MainWindow()
+    window.autoplay_check = types.SimpleNamespace(isChecked=lambda: False)
+
+    p1 = tmp_path / 'seg1.wav'
+    p2 = tmp_path / 'seg2.wav'
+    p1.write_text('a')
+    p2.write_text('b')
+
+    window.on_synthesize_finished([p1, p2], None, 0.0)
+
+    assert window.last_output == p1
+    assert window.history_list.items[0] == str(tmp_path)
+
