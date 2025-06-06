@@ -56,12 +56,13 @@ def synthesize_to_file(
 def get_mms_languages() -> list[tuple[str, str]]:
     """Return list of available languages as (name, code) tuples."""
     try:
-        import importlib.resources as pkg_resources
         from iso639 import Lang
-        with pkg_resources.open_text(
-            "extension_mms.resources", "mms-languages-iso639-3.txt"
-        ) as f:
-            codes = [line.strip() for line in f if line.strip()]
+        lang_file = Path(__file__).with_name("resources") / "mms_languages.txt"
+        if lang_file.exists():
+            with lang_file.open("r", encoding="utf-8") as f:
+                codes = [line.strip() for line in f if line.strip()]
+        else:
+            codes = ["eng"]
         return [(Lang(code).name, code) for code in codes]
     except Exception:
         return [("English", "eng")]

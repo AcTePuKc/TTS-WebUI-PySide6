@@ -46,3 +46,4 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
 - Improved virtual environment detection for backend installation. The helper now
   also checks `VIRTUAL_ENV` and `CONDA_PREFIX` so Conda environments are handled
   correctly.
+- Replaced `extension_*` backend requirements with official pip packages and added a minimal `mms_languages.txt` file.

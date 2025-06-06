@@ -20,7 +20,7 @@ def test_git_requirement_parsing():
         missing = missing_backend_packages('bark')
 
     assert not missing
-    assert 'extension_bark' in checked
+    assert 'bark' in checked
 
 
 def test_case_insensitive_module_name():
