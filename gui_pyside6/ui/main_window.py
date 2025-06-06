@@ -505,6 +505,8 @@ class MainWindow(QtWidgets.QMainWindow):
         elif hasattr(self.whisper_model_combo, "setCurrentText"):
             self.whisper_model_combo.setCurrentText("small")
         whisper_form.addRow("Model", self.whisper_model_combo)
+        self.whisper_ts_checkbox = QtWidgets.QCheckBox("Force timestamps")
+        whisper_form.addRow("Return timestamps", self.whisper_ts_checkbox)
         self.whisper_opts = QtWidgets.QGroupBox("Whisper Options")
         self.whisper_opts.setLayout(whisper_form)
         self.whisper_opts.setVisible(False)
@@ -653,6 +655,8 @@ class MainWindow(QtWidgets.QMainWindow):
             kwargs["seed"] = seed
         if backend == "whisper":
             kwargs["model_name"] = self.whisper_model_combo.currentText()
+            if hasattr(self, "whisper_ts_checkbox") and self.whisper_ts_checkbox.isChecked():
+                kwargs["return_timestamps"] = True
 
         print(f"[INFO] Synthesizing with {backend}...")
         self.worker = SynthesizeWorker(func, text, output, kwargs)
