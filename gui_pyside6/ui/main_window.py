@@ -388,15 +388,28 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # History list
         self.history_list = QtWidgets.QListWidget()
-        if not isinstance(getattr(self.history_list, "items", None), list):
-            self.history_list.items = []
+        supports_insert = True
+        try:
+            self.history_list.insertItem(0, "")
+            supports_insert = self.history_list.count() > 0
+            self.history_list.takeItem(0)
+        except Exception:
+            supports_insert = False
+
+        if not supports_insert:
+            if not isinstance(getattr(self.history_list, "items", None), list):
+                self.history_list.items = []
+
             def _insert(idx, text, self=self.history_list):
                 self.items.insert(idx, text)
+
             def _count(self=self.history_list):
                 return len(self.items)
+
             def _take(idx, self=self.history_list):
                 if len(self.items) > idx:
                     self.items.pop(idx)
+
             self.history_list.insertItem = _insert
             self.history_list.count = _count
             self.history_list.takeItem = _take
