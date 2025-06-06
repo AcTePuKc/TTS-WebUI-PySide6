@@ -1,0 +1,3 @@
+package = "demucs"
+repo_url = "https://github.com/facebookresearch/demucs"
+description = "Split audio into vocal/instrument stems."

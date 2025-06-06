@@ -1,0 +1,3 @@
+package = "vocos"
+repo_url = "https://github.com/charactr-platform/vocos"
+description = "Neural codec audio reconstruction tool."

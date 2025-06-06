@@ -1,0 +1,3 @@
+package = "edge-tts"
+repo_url = "https://github.com/rany2/edge-tts"
+description = "Microsoft Edge cloud voices."

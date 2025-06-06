@@ -1,0 +1,3 @@
+package = "chatterbox-tts"
+repo_url = "https://github.com/resemble-ai/chatterbox"
+description = "Voice cloning from prompts."
