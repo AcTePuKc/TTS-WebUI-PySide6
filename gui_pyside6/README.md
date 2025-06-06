@@ -22,6 +22,10 @@ All Hybrid app code, scripts and dependencies stay inside `/gui_pyside6/`. Do no
    python -m gui_pyside6.main
    ```
 
+When launched outside any virtual environment, the application automatically
+adds the per-user environment at `~/.hybrid_tts/venv` to `sys.path` so packages
+installed there remain available between sessions.
+
 Optional TTS backends are installed on demand. Select a backend and click the **Install Backend** button if prompted.
 
 Backend packages are defined in `backend/backend_requirements.json`. Installation first checks if the app is running inside a virtual environment; if so, packages install there. Detection now also considers `VIRTUAL_ENV` or `CONDA_PREFIX` environment variables so Conda and other managers work. If no environment is active, packages install into a per-user environment at `~/.hybrid_tts/venv` (`C:\Users\USERNAME\.hybrid_tts\venv` on Windows).
