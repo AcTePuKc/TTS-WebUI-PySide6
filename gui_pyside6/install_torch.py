@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import importlib.metadata
 
 def detect_cuda_version():
     try:
@@ -41,7 +42,27 @@ def install_torch(index_url):
         print(" ".join(cmd))
         sys.exit(1)
 
+def _compatible_torch_installed():
+    pkgs = ["torch", "torchvision", "torchaudio"]
+    versions = []
+    for pkg in pkgs:
+        try:
+            v = importlib.metadata.version(pkg)
+        except importlib.metadata.PackageNotFoundError:
+            return False
+        versions.append(v.split("+")[0])
+
+    if len(set(versions)) == 1:
+        print(f"Compatible PyTorch installation already present ({versions[0]})")
+        return True
+    else:
+        print("Mismatched PyTorch package versions detected; reinstalling...")
+        return False
+
 if __name__ == "__main__":
+    if _compatible_torch_installed():
+        sys.exit(0)
+
     cuda = detect_cuda_version()
     print(f"Detected CUDA: {cuda or 'None (CPU fallback)'}")
     install_torch(get_index_url(cuda))
