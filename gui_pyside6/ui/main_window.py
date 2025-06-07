@@ -523,6 +523,39 @@ class MainWindow(QtWidgets.QMainWindow):
         buttons_row.addWidget(self.api_button)
         input_layout.addLayout(buttons_row)
 
+        cb_form = QtWidgets.QFormLayout()
+        if hasattr(QtWidgets, "QDoubleSpinBox"):
+            self.cb_exaggeration = QtWidgets.QDoubleSpinBox()
+            self.cb_exaggeration.setRange(0.25, 2.0)
+            self.cb_exaggeration.setSingleStep(0.05)
+            self.cb_exaggeration.setValue(0.5)
+            cb_form.addRow("Exaggeration", self.cb_exaggeration)
+
+            self.cb_cfg = QtWidgets.QDoubleSpinBox()
+            self.cb_cfg.setRange(0.2, 1.0)
+            self.cb_cfg.setSingleStep(0.05)
+            self.cb_cfg.setValue(0.5)
+            cb_form.addRow("CFG/Pace", self.cb_cfg)
+
+            self.cb_temp = QtWidgets.QDoubleSpinBox()
+            self.cb_temp.setRange(0.05, 5.0)
+            self.cb_temp.setSingleStep(0.05)
+            self.cb_temp.setValue(0.8)
+            cb_form.addRow("Temperature", self.cb_temp)
+        else:
+            self.cb_exaggeration = self.cb_cfg = self.cb_temp = QtWidgets.QLabel()
+
+        self.cb_voice_button = QtWidgets.QPushButton("Load Voice Prompt")
+        safe_connect(self.cb_voice_button.clicked, self.on_load_voice_prompt)
+        cb_form.addRow(self.cb_voice_button)
+
+        self.chatterbox_opts = QtWidgets.QGroupBox("Chatterbox Options")
+        self.chatterbox_opts.setLayout(cb_form)
+        self.chatterbox_opts.setVisible(False)
+
+        # Complex backend options placed consistently above History
+        main_layout.addWidget(self.chatterbox_opts)
+
         history_group = QtWidgets.QGroupBox("History")
         history_layout = QtWidgets.QVBoxLayout(history_group)
         main_layout.addWidget(history_group)
@@ -574,38 +607,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.whisper_opts = QtWidgets.QGroupBox("Whisper Options")
         self.whisper_opts.setLayout(whisper_form)
         self.whisper_opts.setVisible(False)
-        main_layout.addWidget(self.whisper_opts)
+        params_layout.addWidget(self.whisper_opts)
 
-        cb_form = QtWidgets.QFormLayout()
-        if hasattr(QtWidgets, "QDoubleSpinBox"):
-            self.cb_exaggeration = QtWidgets.QDoubleSpinBox()
-            self.cb_exaggeration.setRange(0.25, 2.0)
-            self.cb_exaggeration.setSingleStep(0.05)
-            self.cb_exaggeration.setValue(0.5)
-            cb_form.addRow("Exaggeration", self.cb_exaggeration)
-
-            self.cb_cfg = QtWidgets.QDoubleSpinBox()
-            self.cb_cfg.setRange(0.2, 1.0)
-            self.cb_cfg.setSingleStep(0.05)
-            self.cb_cfg.setValue(0.5)
-            cb_form.addRow("CFG/Pace", self.cb_cfg)
-
-            self.cb_temp = QtWidgets.QDoubleSpinBox()
-            self.cb_temp.setRange(0.05, 5.0)
-            self.cb_temp.setSingleStep(0.05)
-            self.cb_temp.setValue(0.8)
-            cb_form.addRow("Temperature", self.cb_temp)
-        else:
-            self.cb_exaggeration = self.cb_cfg = self.cb_temp = QtWidgets.QLabel()
-
-        self.cb_voice_button = QtWidgets.QPushButton("Load Voice Prompt")
-        safe_connect(self.cb_voice_button.clicked, self.on_load_voice_prompt)
-        cb_form.addRow(self.cb_voice_button)
-
-        self.chatterbox_opts = QtWidgets.QGroupBox("Chatterbox Options")
-        self.chatterbox_opts.setLayout(cb_form)
-        self.chatterbox_opts.setVisible(False)
-        main_layout.addWidget(self.chatterbox_opts)
 
         self.api_process = None
         self.last_output: Path | None = None
@@ -666,6 +669,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _run_backend(self, backend: str):
         features = BACKEND_FEATURES.get(backend, set())
+        voices: list | None = []
 
         if not is_backend_installed(backend):
             try:
@@ -1077,10 +1081,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 voices = get_chatterbox_voices()
                 self.voice_combo.clear()
-                self.voice_combo.addItem("(none)", None)
-                for name, path in voices:
-                    self.voice_combo.addItem(name, path)
-                self.voice_combo.setEnabled(True)
+                if voices:
+                    self.voice_combo.addItem("(none)", None)
+                    for name, path in voices:
+                        self.voice_combo.addItem(name, path)
+                    self.voice_combo.setVisible(True)
+                else:
+                    self.voice_combo.setVisible(False)
+                self.voice_combo.setEnabled(bool(voices))
                 self.lang_combo.clear()
                 self.lang_combo.setEnabled(False)
                 self.cb_voice_path = None
@@ -1090,7 +1098,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.lang_combo.setEnabled(False)
 
         # final visibility based on declared feature support
-        self.voice_combo.setVisible("voice" in features)
+        show_voice = "voice" in features and not (
+            backend == "chatterbox" and not voices
+        )
+        self.voice_combo.setVisible(show_voice)
         self.lang_combo.setVisible("lang" in features)
         self.rate_widget.setVisible("rate" in features)
         self.seed_widget.setVisible("seed" in features)

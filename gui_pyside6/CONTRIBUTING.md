@@ -62,6 +62,22 @@ When adding or modifying code in `/gui_pyside6/`, document changes in the approp
 - Maintain a flat, clean backend list.
 - Implement new backends fully within `/gui_pyside6/backend/`.
 
+## UI Layout Guidelines
+
+- All backend-specific option groups must:
+
+    - Be created at window init time (not dynamically later).
+    - Be added consistently to the UI:
+
+        - If simple, add to Parameters area layout.
+        - If complex (e.g. Chatterbox Options), add to main layout *above* History area.
+
+    - Be shown/hidden using `.setVisible()` depending on selected backend and available voices/parameters.
+
+This ensures consistent UI layout and prevents widgets from appearing in unexpected order.
+
+If adding a new backend, please follow this pattern.
+
 ## Workflow for Adding New Backends
 
 1. Implement the backend in `/gui_pyside6/backend/`.
