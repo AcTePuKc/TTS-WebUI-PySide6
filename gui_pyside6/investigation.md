@@ -56,3 +56,10 @@ Tests cover text edits and audio file loads to ensure
 found where the **Synthesize** button stays disabled beyond earlier backend
 exceptions interrupting the finish callback.
 
+### Follow-up 8
+
+The Kokoro project officially released the `kokoro` distribution on PyPI.
+Previous versions required using the temporary `kokoro-fastapi` package.
+Our backend metadata and requirements now depend on `kokoro` to match the
+published package name.  Tests and installation helpers were updated accordingly.
+
