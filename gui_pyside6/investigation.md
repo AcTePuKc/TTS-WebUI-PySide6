@@ -47,3 +47,12 @@ Recent Kokoro releases were thought to rely on a `kokoro-fastapi` package. Voice
 
 The attempted switch to `kokoro-fastapi` caused backend installation errors since that distribution does not exist on PyPI. The metadata and requirements now reference `kokoro` again while `missing_backend_packages()` accepts either name for compatibility.
 
+### Follow-up 7
+
+Additional logging now confirms that `_synth_busy` switches to `True` when a
+backend worker starts and back to `False` after `on_synthesize_finished()` runs.
+Tests cover text edits and audio file loads to ensure
+`update_synthesize_enabled()` executes in both cases. No new situations were
+found where the **Synthesize** button stays disabled beyond earlier backend
+exceptions interrupting the finish callback.
+
