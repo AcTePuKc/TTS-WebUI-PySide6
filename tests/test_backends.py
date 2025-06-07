@@ -91,6 +91,8 @@ def test_get_chatterbox_voices_returns_list():
     from gui_pyside6.backend import get_chatterbox_voices
     voices = get_chatterbox_voices()
     assert isinstance(voices, list)
+    if voices:
+        assert all("gui_pyside6/voices/chatterbox" in p for _, p in voices)
 
 
 def test_demucs_backend_available():
