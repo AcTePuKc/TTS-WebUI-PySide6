@@ -87,7 +87,10 @@ TTS_BACKENDS = [
     "chatterbox",
 ]
 
-TOOL_BACKENDS = ["demucs", "vocos", "whisper"]
+# Tool backends operate on audio files rather than generating speech from text.
+# Whisper is handled separately as a transcriber, so it should not be included
+# in this list.
+TOOL_BACKENDS = ["demucs", "vocos"]
 
 EXPERIMENTAL_BACKENDS = ["bark", "tortoise"]
 

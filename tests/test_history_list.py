@@ -349,7 +349,8 @@ def test_button_visibility_updates_by_backend(tmp_path):
 
     window.on_backend_changed('whisper')
     assert not window.synth_button.isVisible()
-    assert window.process_button.isVisible()
+    # Whisper is a transcriber, not an audio tool
+    assert not window.process_button.isVisible()
     assert window.transcribe_button.isVisible()
 
     window.on_backend_changed('pyttsx3')
