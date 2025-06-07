@@ -386,9 +386,9 @@ class MainWindow(QtWidgets.QMainWindow):
             return val
 
         def _record_text():
-            val = _orig_to_plain() if callable(_orig_to_plain) else None
-            if val is not None:
-                self.text_edit._stored_text = str(val)
+            val = self.text_edit.document().toPlainText()
+            logger.debug("_record_text captured text: %r", val)
+            self.text_edit._stored_text = str(val)
 
         self.text_edit.setPlainText = _set_plain
         self.text_edit.toPlainText = _to_plain
