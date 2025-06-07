@@ -1182,6 +1182,13 @@ class MainWindow(QtWidgets.QMainWindow):
         backend = self.backend_combo.currentText()
         features = BACKEND_FEATURES.get(backend, set())
         file_required = "file" in features
+        logger.debug(
+            "update_synthesize_enabled backend=%s features=%s file_required=%s audio_file=%s",
+            backend,
+            sorted(features),
+            file_required,
+            self.audio_file,
+        )
         if file_required:
             text_present = bool(self.audio_file) and Path(self.audio_file).is_file()
         else:
