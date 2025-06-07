@@ -90,10 +90,17 @@ def synthesize_to_file(
 
 
 def list_voices() -> list[tuple[str, str]]:
-    """Return bundled Chatterbox voice names and wav paths."""
-    voices_dir = Path(__file__).resolve().parents[2] / "voices" / "chatterbox"
+    """Return bundled Chatterbox voice names and audio paths.
+
+    Supports: WAV (recommended), MP3 (supported), AAC (experimental,
+    may require ffmpeg-enabled backend).
+    """
+
+    package_dir = Path(__file__).resolve().parent.parent
+    voices_dir = package_dir / "voices" / "chatterbox"
     result: list[tuple[str, str]] = []
     if voices_dir.exists():
-        for wav in voices_dir.glob("*.wav"):
-            result.append((wav.stem, str(wav)))
+        for audio_file in voices_dir.glob("*.*"):
+            if audio_file.suffix.lower() in [".wav", ".mp3", ".aac"]:
+                result.append((audio_file.stem, str(audio_file)))
     return result

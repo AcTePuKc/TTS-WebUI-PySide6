@@ -48,3 +48,4 @@ This file tracks files copied or cleaned during the migration to the PySide6 GUI
   correctly.
 - Replaced `extension_*` backend requirements with official pip packages and added a minimal `mms_languages.txt` file.
 - Added `transformers` as an additional dependency for the `whisper` backend.
+- Added `voices/chatterbox` folder with README for optional demo voices and updated backend path.
