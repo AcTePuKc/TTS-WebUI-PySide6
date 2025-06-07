@@ -31,6 +31,9 @@
   "kokoro": [
     "kokoro"
   ],
+  "kokoro_fastapi": [
+    "kokoro-fastapi @ git+https://github.com/remsky/Kokoro-FastAPI.git"
+  ],
   "chatterbox": [
     "chatterbox-tts",
     "nltk"

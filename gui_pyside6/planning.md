@@ -45,6 +45,10 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
   can run even when detection is unreliable.
 - Verify Kokoro backend installation with the new `kokoro` package.
 
+- `Kokoro-FastAPI` is not published on PyPI. Install it from Git when you
+  need the standalone server:
+  `pip install "kokoro-fastapi @ git+https://github.com/remsky/Kokoro-FastAPI.git"`
+
 - Refactor `on_synthesize` into helper methods for easier maintenance.
 - Investigate missing Kokoro voice packs with `KPipeline` and document findings
   in `investigation.md`.
