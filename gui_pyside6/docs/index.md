@@ -62,6 +62,17 @@ See also:
 - [Contribution Workflow](../CONTRIBUTING.md)
 - [Project Guidelines](../AGENTS.md)
 
+### Debug Logging
+
+Run the app with debug logging enabled to help diagnose issues:
+
+```bash
+HYBRID_TTS_DEBUG=1 python -m gui_pyside6.main
+```
+
+Logs are written to `~/.hybrid_tts/app.log` and can clarify problems with UI
+state, such as the **Synthesize** button remaining disabled.
+
 ## Notes and Investigations
 
 - [Investigation Notes](../investigation.md)
