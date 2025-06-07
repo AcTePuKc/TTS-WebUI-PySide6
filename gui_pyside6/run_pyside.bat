@@ -77,16 +77,6 @@ uv pip sync "%REQUIREMENTS_LOCK_FILE%" || (
     exit /b 1
 )
 
-:: Conditional PyTorch install
-if "%UV_APP_DRY%"=="0" (
-    echo Installing PyTorch...
-    python install_torch.py || (
-        echo WARNING: PyTorch install failed. App may lack GPU support.
-    )
-) else (
-    echo [Dry Run] Skipped PyTorch installation
-)
-
 pushd ..
 start "%WINDOW_TITLE%" cmd /k ""%VENV_DIR%\Scripts\python.exe" -m %SCRIPT_MODULE%"
 popd
