@@ -84,32 +84,6 @@ def synthesize_to_file(
 
 def list_voices() -> list[tuple[str, str]]:
     """Return available Kokoro voice display names and identifiers."""
-    try:
-        from extension_kokoro import CHOICES as choices_mod
-        print("[INFO] Loaded voice list from extension_kokoro.CHOICES")
-        return list(getattr(choices_mod, "CHOICES", {}).items())
-    except Exception as e:
-        print(f"[INFO] extension_kokoro.CHOICES not available: {e}")
-
-    try:
-        import importlib.util
-        from pathlib import Path
-        spec = importlib.util.find_spec("extension_kokoro")
-        if spec and spec.origin:
-            choices_path = Path(spec.origin).parent / "CHOICES.py"
-            if choices_path.exists():
-                print(f"[INFO] Loading voices from {choices_path}")
-                namespace: dict[str, object] = {}
-                with choices_path.open("r", encoding="utf-8") as f:
-                    code = f.read()
-                exec(code, namespace)
-                choices = namespace.get("CHOICES", {})
-                if isinstance(choices, dict):
-                    return list(choices.items())
-            else:
-                print(f"[INFO] No CHOICES.py at {choices_path}")
-    except Exception as e:
-        print(f"[WARN] Failed to load voices from CHOICES.py: {e}")
 
     dirs_to_check: list[Path] = []
 

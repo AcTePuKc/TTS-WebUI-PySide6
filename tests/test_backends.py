@@ -30,13 +30,6 @@ async def dummy_list_voices():
 edge_dummy.list_voices = dummy_list_voices
 sys.modules.setdefault("edge_tts", edge_dummy)
 
-# Dummy Kokoro module for listing voices
-kokoro_mod = types.ModuleType("extension_kokoro")
-kokoro_choices = types.ModuleType("extension_kokoro.CHOICES")
-kokoro_choices.CHOICES = {"Heart": "af_heart"}
-sys.modules.setdefault("extension_kokoro", kokoro_mod)
-sys.modules.setdefault("extension_kokoro.CHOICES", kokoro_choices)
-
 # Dummy Chatterbox module
 chatter_mod = types.ModuleType("chatterbox")
 class DummyChatterboxTTS:
@@ -82,11 +75,12 @@ def test_kokoro_backend_available():
     assert "kokoro" in available_backends()
 
 
-def test_get_kokoro_voices_returns_list():
+def test_get_kokoro_voices_returns_list(tmp_path, monkeypatch):
+    monkeypatch.setenv("KOKORO_VOICE_DIR", str(tmp_path))
+    (tmp_path / "demo.pt").write_text("x")
     from gui_pyside6.backend import get_kokoro_voices
     voices = get_kokoro_voices()
-    assert isinstance(voices, list)
-    assert voices and isinstance(voices[0], tuple) and len(voices[0]) == 2
+    assert voices == [("demo", "demo")]
 
 
 def test_chatterbox_backend_available():
@@ -123,7 +117,6 @@ def test_whisper_backend_available():
 
 
 def test_kokoro_voice_dir_env(tmp_path, monkeypatch):
-    monkeypatch.delitem(sys.modules, "extension_kokoro.CHOICES", raising=False)
     monkeypatch.setenv("KOKORO_VOICE_DIR", str(tmp_path))
     (tmp_path / "custom.pt").write_text("x")
     from gui_pyside6.backend import get_kokoro_voices
@@ -132,7 +125,6 @@ def test_kokoro_voice_dir_env(tmp_path, monkeypatch):
 
 
 def test_kokoro_voice_dir_missing(tmp_path, monkeypatch):
-    monkeypatch.delitem(sys.modules, "extension_kokoro.CHOICES", raising=False)
     monkeypatch.setenv("KOKORO_VOICE_DIR", str(tmp_path))
     from gui_pyside6.backend import get_kokoro_voices
     voices = get_kokoro_voices()
