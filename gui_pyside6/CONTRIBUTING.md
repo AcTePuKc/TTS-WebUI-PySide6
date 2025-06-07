@@ -9,8 +9,9 @@ This project contains multiple apps:
 - `/react_ui/` → React UI (separate project, do not touch)
 - Legacy WebUI → root files (frozen, do not touch)
 
-**Work only in `/gui_pyside6/`.**  
+**Work only in `/gui_pyside6/`.**
 Do not modify `/react_ui/` or root-level files.
+The exception is the repository's root `tests/` directory, which holds automated tests and may be updated.
 
 ## Directory Layout of `/gui_pyside6/`
 ```

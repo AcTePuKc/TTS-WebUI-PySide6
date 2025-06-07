@@ -90,7 +90,13 @@ Linux/macOS.
 
 ## Running Tests
 
-From the repository root, run:
+Install the test dependencies first:
+
+```bash
+pip install -r tests/requirements-dev.in
+```
+
+Then from the repository root, run:
 
 ```bash
 pytest -q
