@@ -43,7 +43,8 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 
 - Remove backend installation checks from the synthesize button so synthesis
   can run even when detection is unreliable.
-- Switch Kokoro backend dependency to `kokoro-fastapi` and update metadata.
+- Verify Kokoro backend installation since `kokoro-fastapi` is unavailable on PyPI.
+
 - Refactor `on_synthesize` into helper methods for easier maintenance.
 - Investigate missing Kokoro voice packs with `KPipeline` and document findings
   in `investigation.md`.

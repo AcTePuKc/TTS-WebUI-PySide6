@@ -41,4 +41,9 @@ Importing `extension_kokoro.main` still pulled in Gradio modules, causing a `No 
 
 ### Follow-up 5
 
-Recent Kokoro releases rely on the `kokoro-fastapi` package. Voice packs were not detected because `backend_requirements.json` still referenced the legacy `kokoro` distribution. Updating the requirement to `kokoro-fastapi` and adjusting the metadata resolves the missing voices when using `KPipeline`.
+Recent Kokoro releases were thought to rely on a `kokoro-fastapi` package. Voice packs were not detected because `backend_requirements.json` still referenced the legacy `kokoro` distribution. After testing, no `kokoro-fastapi` package was found on PyPI. Reverting to the `kokoro` requirement keeps voice detection working.
+
+### Follow-up 6
+
+The attempted switch to `kokoro-fastapi` caused backend installation errors since that distribution does not exist on PyPI. The metadata and requirements now reference `kokoro` again while `missing_backend_packages()` accepts either name for compatibility.
+
