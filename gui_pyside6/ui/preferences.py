@@ -5,6 +5,7 @@ from PySide6 import QtWidgets, QtCore
 from ..backend import available_backends, is_backend_installed, uninstall_backend
 from ..utils.languages import get_available_languages
 from ..utils.preferences import load_preferences
+from ..utils.open_folder import open_log_dir
 
 
 class PreferencesDialog(QtWidgets.QDialog):
@@ -61,6 +62,9 @@ class PreferencesDialog(QtWidgets.QDialog):
         self.uninstall_btn = QtWidgets.QPushButton("Uninstall Selected")
         self.uninstall_btn.clicked.connect(self.on_uninstall)
         btn_row.addWidget(self.uninstall_btn)
+        log_btn = QtWidgets.QPushButton("Open Log File")
+        log_btn.clicked.connect(self.on_open_log)
+        btn_row.addWidget(log_btn)
         close_btn = QtWidgets.QPushButton("Close")
         close_btn.clicked.connect(self.accept)
         btn_row.addWidget(close_btn)
@@ -85,6 +89,9 @@ class PreferencesDialog(QtWidgets.QDialog):
             backend = item.data(QtCore.Qt.UserRole)
             uninstall_backend(backend)
         self.refresh_backends()
+
+    def on_open_log(self) -> None:
+        open_log_dir()
 
     def get_preferences(self) -> dict:
         return {
