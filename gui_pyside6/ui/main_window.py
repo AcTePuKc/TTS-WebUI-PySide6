@@ -1122,6 +1122,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_synthesize_enabled()
 
     def update_install_status(self):
+        if self.backend_combo is None:
+            return
         backend = self.backend_combo.currentText()
         from ..backend import backend_was_installed
         if backend_was_installed(backend):
@@ -1133,6 +1135,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_synthesize_enabled()
 
     def update_synthesize_enabled(self):
+        if self.backend_combo is None:
+            return
         backend = self.backend_combo.currentText()
         features = BACKEND_FEATURES.get(backend, set())
         file_required = "file" in features
