@@ -44,6 +44,9 @@ Metadata files under `backend/metadata/` record the primary package name and rep
 - Music source separation with **Demucs**. Load an audio file and the backend
   generates individual stem tracks.
 - Speech-to-text transcription with **OpenAI Whisper**.
+- When a transcription backend is selected, the **Synthesize** button becomes
+  **Transcribe**. Load an audio file and use this button to convert speech to
+  text. Tools like Whisper require the Transcribe button.
 - Some tools may output a folder of audio files instead of a single file. The
   application adds the folder path to the history list and treats the first file
   as the last output.

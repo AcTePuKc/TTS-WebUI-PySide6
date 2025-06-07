@@ -27,10 +27,17 @@ This project is a standalone TTS and audio processing application with a native 
 
 ## API Documentation
 
-The app includes an optional FastAPI server for programmatic synthesis.
+- The app includes an optional FastAPI server for programmatic synthesis.
 
 - Start the server using **Run API Server** button in the GUI.
 - API docs available at [http://localhost:8000/docs](http://localhost:8000/docs) when server is running.
+
+## Transcription
+
+When you choose a transcription backend such as **Whisper**, the
+**Synthesize** button changes to **Transcribe**. Load an audio file and use
+this button to generate text. Transcription backends require using the
+Transcribe button.
 
 See also:
 - [API usage notes](#api-usage-notes) (future section)
