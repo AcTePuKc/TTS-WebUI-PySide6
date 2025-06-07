@@ -53,6 +53,14 @@ See also:
   **Transcribe**, and **Process** buttons to stay enabled regardless of input
   state.
 
+### Kokoro Voices
+
+Kokoro voice packs download from Hugging Face the first time you select a
+voice. They are stored under the Hugging Face cache directory, typically
+`~/.cache/huggingface/hub`. Set the `KOKORO_VOICE_DIR` environment variable if
+you want to load voices from a custom folder containing `.pt` files. The same
+path can be configured in **Edit → Preferences** under "Kokoro voice directory".
+
 ## Documentation Sections
 
 - [Getting Started](getting_started.md) (setup, running the app)

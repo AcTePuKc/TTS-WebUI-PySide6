@@ -126,6 +126,27 @@ def test_kokoro_voice_dir_env(tmp_path, monkeypatch):
 
 def test_kokoro_voice_dir_missing(tmp_path, monkeypatch):
     monkeypatch.setenv("KOKORO_VOICE_DIR", str(tmp_path))
+    monkeypatch.setenv("HF_HOME", str(tmp_path))
+    from importlib import reload
+    import huggingface_hub.constants as hf_constants
+    reload(hf_constants)
+    import gui_pyside6.backend.kokoro_backend as kb
+    reload(kb)
     from gui_pyside6.backend import get_kokoro_voices
     voices = get_kokoro_voices()
     assert voices == []
+
+
+def test_kokoro_voice_cache_detection(tmp_path, monkeypatch):
+    cache_root = tmp_path / "hub" / "models--hexgrad--Kokoro-82M" / "snapshots" / "abc" / "voices"
+    cache_root.mkdir(parents=True)
+    (cache_root / "cache.pt").write_text("x")
+    monkeypatch.setenv("HF_HOME", str(tmp_path))
+    from importlib import reload
+    import huggingface_hub.constants as hf_constants
+    reload(hf_constants)
+    import gui_pyside6.backend.kokoro_backend as kb
+    reload(kb)
+    from gui_pyside6.backend import get_kokoro_voices
+    voices = get_kokoro_voices()
+    assert voices == [("cache", "cache")]
