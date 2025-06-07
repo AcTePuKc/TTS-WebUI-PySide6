@@ -1058,7 +1058,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_text_changed(self):
         print("[DEBUG] textChanged emitted", file=sys.__stdout__)
-        self.update_synthesize_enabled()
+        QtCore.QTimer.singleShot(0, self.update_synthesize_enabled)
 
     def on_preferences(self):
         dlg = PreferencesDialog(self.prefs, self)
