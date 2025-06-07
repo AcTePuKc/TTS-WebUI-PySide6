@@ -36,11 +36,11 @@ def test_case_insensitive_module_name():
     assert missing == []
 
 
-def test_kokoro_fastapi_counts_as_installed():
-    """``kokoro-fastapi`` should satisfy the ``kokoro`` backend."""
+def test_kokoro_distribution_counts_as_installed():
+    """``kokoro`` distribution should satisfy the ``kokoro`` backend."""
 
     def fake_distribution(name):
-        if name == 'kokoro-fastapi':
+        if name == 'kokoro':
             class D: ...
             return D()
         raise importlib.metadata.PackageNotFoundError
