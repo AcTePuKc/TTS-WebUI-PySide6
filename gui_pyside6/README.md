@@ -60,6 +60,7 @@ Open **Edit → Preferences** to configure the application.
 - **Auto play after synthesis** – automatically play generated audio.
 - **Output directory** – folder where synthesized files are saved. Defaults to `outputs/`.
 - **Uninstall Backends** – remove optional TTS backends you previously installed.
+- **Open Log File** – open the folder containing application logs.
 
 Custom translation files can be placed in `~/.hybrid_tts/translations` to
 augment the UI language list.
