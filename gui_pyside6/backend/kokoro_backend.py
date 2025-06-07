@@ -101,21 +101,26 @@ def list_voices() -> list[tuple[str, str]]:
     except Exception as e:
         print(f"[WARN] Failed to load preferences: {e}")
 
-    # Kokoro-FastAPI packages voice models under api/src/voices/v1_0
     try:
-        import importlib.util
-        spec = importlib.util.find_spec("kokoro_fastapi")
-        if spec and spec.origin:
-            base = Path(spec.origin).parent.parent
-            dirs_to_check.append(base / "api" / "src" / "voices" / "v1_0")
+        from huggingface_hub import constants as hf_constants
+
+        cache_root = Path(hf_constants.HUGGINGFACE_HUB_CACHE)
+        hf_dirs = cache_root.glob("models--*/snapshots/*/voices")
+        dirs_to_check.extend(hf_dirs)
     except Exception as e:
-        print(f"[INFO] Unable to locate kokoro_fastapi voices: {e}")
+        print(f"[INFO] Unable to search Hugging Face cache: {e}")
 
     for root in site.getsitepackages():
         dirs_to_check.append(Path(root) / "api" / "src" / "voices" / "v1_0")
 
-    checked = False
+    # Remove duplicates while preserving order
+    unique_dirs = []
     for d in dirs_to_check:
+        if d not in unique_dirs:
+            unique_dirs.append(d)
+
+    checked = False
+    for d in unique_dirs:
         print(f"[INFO] Checking voice directory: {d}")
         checked = True
         if d.exists():

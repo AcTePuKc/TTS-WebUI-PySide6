@@ -28,6 +28,11 @@ installed there remain available between sessions.
 
 Optional TTS backends are installed on demand. Select a backend and click the **Install Backend** button if prompted.
 
+Kokoro voices are not bundled with the package. When you choose a Kokoro voice
+for the first time the file downloads from Hugging Face into the cache directory
+(`~/.cache/huggingface/hub` by default). Set `KOKORO_VOICE_DIR` to override the
+location where voice `.pt` files are loaded from.
+
 Backend packages are defined in `backend/backend_requirements.json`. Installation first checks if the app is running inside a virtual environment; if so, packages install there. Detection now also considers `VIRTUAL_ENV` or `CONDA_PREFIX` environment variables so Conda and other managers work. If no environment is active, packages install into a per-user environment at `~/.hybrid_tts/venv` (`C:\Users\USERNAME\.hybrid_tts\venv` on Windows).
 Metadata files under `backend/metadata/` record the primary package name and repository URL for each backend.
 
