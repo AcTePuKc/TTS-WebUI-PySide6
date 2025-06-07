@@ -38,3 +38,7 @@ the distribution regardless of module layout.
 ### Follow-up 4
 
 Importing `extension_kokoro.main` still pulled in Gradio modules, causing a `No module named "gradio_iconbutton"` error during synthesis. The backend now implements its own Kokoro wrapper using the public `kokoro` library so no Gradio components are imported.
+
+### Follow-up 5
+
+Recent Kokoro releases rely on the `kokoro-fastapi` package. Voice packs were not detected because `backend_requirements.json` still referenced the legacy `kokoro` distribution. Updating the requirement to `kokoro-fastapi` and adjusting the metadata resolves the missing voices when using `KPipeline`.

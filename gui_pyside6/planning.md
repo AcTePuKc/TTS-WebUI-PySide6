@@ -39,3 +39,11 @@ This document tracks the initial tasks for building the PySide6 Hybrid TTS appli
 - Persist optional backend install status in `~/.hybrid_tts/install.log` and load
   it on startup so the UI remembers previously installed backends.
 
+## Pending Tasks
+
+- Remove backend installation checks from the synthesize button so synthesis
+  can run even when detection is unreliable.
+- Switch Kokoro backend dependency to `kokoro-fastapi` and update metadata.
+- Refactor `on_synthesize` into helper methods for easier maintenance.
+- Investigate missing Kokoro voice packs with `KPipeline` and document findings
+  in `investigation.md`.
