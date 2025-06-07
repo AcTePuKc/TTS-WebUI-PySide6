@@ -222,13 +222,9 @@ def _dist_or_module_available(name: str) -> bool:
 def missing_backend_packages(name: str) -> list[str]:
     """Return a list of required packages that are not currently installed."""
 
-    # The Kokoro backend can be satisfied by either the ``kokoro`` or
-    # ``kokoro-fastapi`` distribution.  Treat the backend as installed if either
-    # package is present.
-    if name == "kokoro":
-        for candidate in ("kokoro", "kokoro-fastapi"):
-            if _dist_or_module_available(candidate):
-                return []
+    # The Kokoro backend ships under the ``kokoro`` distribution.
+    if name == "kokoro" and _dist_or_module_available("kokoro"):
+        return []
 
     missing = []
     for pkg in _get_backend_packages(name):

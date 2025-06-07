@@ -48,9 +48,9 @@ def test_is_backend_installed_false():
         assert not is_backend_installed('pyttsx3')
 
 
-def test_kokoro_fastapi_is_recognized():
+def test_kokoro_distribution_is_recognized():
     def fake_distribution(name):
-        if name == 'kokoro-fastapi':
+        if name == 'kokoro':
             return object()
         raise importlib.metadata.PackageNotFoundError
 
