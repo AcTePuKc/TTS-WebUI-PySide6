@@ -1174,6 +1174,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_synthesize_enabled(self):
         if self.backend_combo is None:
             return
+        if os.environ.get("HYBRID_TTS_ALWAYS_ENABLE") == "1":
+            self.synth_button.setEnabled(True)
+            self.transcribe_button.setEnabled(True)
+            self.process_button.setEnabled(True)
+            return
         backend = self.backend_combo.currentText()
         features = BACKEND_FEATURES.get(backend, set())
         file_required = "file" in features
