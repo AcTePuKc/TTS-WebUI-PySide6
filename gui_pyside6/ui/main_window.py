@@ -57,9 +57,7 @@ def _hf_whisper_model(name: Optional[str]) -> str:
 
 
 class SynthesizeWorker(QtCore.QThread):
-
     finished = QtCore.Signal(object, object, float)
-
 
     def __init__(self, func, text: str, output: Path | None, kwargs: dict):
         super().__init__()
@@ -103,9 +101,11 @@ class InstallWorker(QtCore.QThread):
         self.finished.emit(self.backend, err)
 
 
-
-
-LabelBase = QtWidgets.QLabel if isinstance(getattr(QtWidgets, "QLabel", object), type) else object
+LabelBase = (
+    QtWidgets.QLabel
+    if isinstance(getattr(QtWidgets, "QLabel", object), type)
+    else object
+)
 
 
 class WaveformWidget(LabelBase):
@@ -197,6 +197,7 @@ class WaveformWidget(LabelBase):
     def set_audio_file(self, path: str | Path):
         try:
             import soundfile as sf
+
             data, _ = sf.read(str(path))
         except Exception as e:
             print(f"[WARN] Failed to load waveform from {path}: {e}")
@@ -204,13 +205,13 @@ class WaveformWidget(LabelBase):
             return
         self.set_audio_array(data)
 
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.prefs = load_preferences()
         self.debug = bool(
-            self.prefs.get("debug", False)
-            or os.environ.get("HYBRID_TTS_DEBUG") == "1"
+            self.prefs.get("debug", False) or os.environ.get("HYBRID_TTS_DEBUG") == "1"
         )
 
         log_dir = Path.home() / ".hybrid_tts"
@@ -296,7 +297,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tools_combo = QtWidgets.QComboBox()
         self.tools_combo.addItems(TOOL_BACKENDS)
         safe_connect(self.tools_combo.currentTextChanged, self.on_backend_changed)
-        safe_connect(self.tools_combo.currentTextChanged, self.update_synthesize_enabled)
+        safe_connect(
+            self.tools_combo.currentTextChanged, self.update_synthesize_enabled
+        )
         tools_layout.addWidget(self.tools_combo)
         self.tabs.addTab(tools_tab, "Audio Tools")
 
@@ -317,7 +320,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs.addTab(settings_tab, "Settings")
 
         model_row.addWidget(self.tabs)
-
 
         self.install_button = QtWidgets.QPushButton("Install Backend")
         safe_connect(self.install_button.clicked, self.on_install_backend)
@@ -413,27 +415,32 @@ class MainWindow(QtWidgets.QMainWindow):
         _orig_is_vis = getattr(self.transcript_view, "isVisible", None)
         self.transcript_view._stored_text = ""
         self.transcript_view._visible = False
+
         def _set_plain_t(t):
             self.transcript_view._stored_text = t
             if callable(_orig_set_plain):
                 _orig_set_plain(t)
+
         def _to_plain_t():
             if callable(_orig_to_plain):
                 val = _orig_to_plain()
                 if val is not None:
                     return val
             return self.transcript_view._stored_text
+
         def _set_vis(v: bool):
             self.transcript_view._visible = v
             if callable(_orig_set_vis):
                 _orig_set_vis(v)
             self.transcript_group.setVisible(v)
+
         def _is_vis():
             if callable(_orig_is_vis):
                 val = _orig_is_vis()
                 if val is not None:
                     return val
             return self.transcript_view._visible
+
         self.transcript_view.setPlainText = _set_plain_t
         self.transcript_view.toPlainText = _to_plain_t
         self.transcript_view.setVisible = _set_vis
@@ -443,8 +450,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.transcript_view.setVisible(False)
         transcript_layout.addWidget(self.transcript_view)
         self.transcript_group.setVisible(False)
-
-
 
         # --- Mini player row ---
         player_row = QtWidgets.QHBoxLayout()
@@ -555,7 +560,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.whisper_model_combo = QtWidgets.QComboBox()
         self.whisper_model_combo.addItems(WHISPER_MODELS)
         index = getattr(self.whisper_model_combo, "findText", lambda *_: -1)("small")
-        if isinstance(index, int) and index >= 0 and hasattr(self.whisper_model_combo, "setCurrentIndex"):
+        if (
+            isinstance(index, int)
+            and index >= 0
+            and hasattr(self.whisper_model_combo, "setCurrentIndex")
+        ):
             self.whisper_model_combo.setCurrentIndex(index)
         elif hasattr(self.whisper_model_combo, "setCurrentText"):
             self.whisper_model_combo.setCurrentText("small")
@@ -598,7 +607,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.chatterbox_opts.setVisible(False)
         main_layout.addWidget(self.chatterbox_opts)
 
-
         self.api_process = None
         self.last_output: Path | None = None
         self._synth_busy = False
@@ -631,7 +639,9 @@ class MainWindow(QtWidgets.QMainWindow):
         backend = self.backend_combo.currentText()
         if backend in TRANSCRIBERS:
             if hasattr(self.status, "setText"):
-                self.status.setText("Current backend is for transcription. Use the Transcribe button.")
+                self.status.setText(
+                    "Current backend is for transcription. Use the Transcribe button."
+                )
             self.update_synthesize_enabled()
             return
         self._run_backend(backend)
@@ -692,7 +702,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.update_synthesize_enabled()
                     return
 
-
         output = self._generate_output_path(text, backend)
         if backend in TRANSCRIBERS:
             output = None
@@ -712,7 +721,14 @@ class MainWindow(QtWidgets.QMainWindow):
         kwargs = self._build_backend_kwargs(backend, voice_id, lang_code, rate, seed)
         self._start_backend_worker(backend, text, output, kwargs)
 
-    def _build_backend_kwargs(self, backend: str, voice: str | None, lang: str | None, rate: int, seed: int | None) -> dict:
+    def _build_backend_kwargs(
+        self,
+        backend: str,
+        voice: str | None,
+        lang: str | None,
+        rate: int,
+        seed: int | None,
+    ) -> dict:
         features = BACKEND_FEATURES.get(backend, set())
         kwargs: dict = {}
         if "rate" in features:
@@ -741,17 +757,20 @@ class MainWindow(QtWidgets.QMainWindow):
         if backend == "whisper":
             model_name = self.whisper_model_combo.currentText()
             kwargs["model_name"] = _hf_whisper_model(model_name)
-            if hasattr(self, "whisper_ts_checkbox") and self.whisper_ts_checkbox.isChecked():
+            if (
+                hasattr(self, "whisper_ts_checkbox")
+                and self.whisper_ts_checkbox.isChecked()
+            ):
                 kwargs["return_timestamps"] = True
         return kwargs
 
-    def _start_backend_worker(self, backend: str, text: str, output: Path | None, kwargs: dict) -> None:
+    def _start_backend_worker(
+        self, backend: str, text: str, output: Path | None, kwargs: dict
+    ) -> None:
         lookup = TRANSCRIBERS if backend in TRANSCRIBERS else BACKENDS
         func = lookup[backend]
         print(f"[INFO] Synthesizing with {backend}...")
-        logger.debug(
-            "_start_backend_worker busy flag %s -> True", self._synth_busy
-        )
+        logger.debug("_start_backend_worker busy flag %s -> True", self._synth_busy)
         self._synth_busy = True
         self.update_synthesize_enabled()
         logger.debug("_start_backend_worker busy flag now %s", self._synth_busy)
@@ -814,11 +833,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.player.setSource(QUrl.fromLocalFile(str(path)))
             self.on_play_output()
 
-
     def on_synthesize_finished(self, output: object, error: object, elapsed: float):
-        logger.debug(
-            "on_synthesize_finished called with busy=%s", self._synth_busy
-        )
+        logger.debug("on_synthesize_finished called with busy=%s", self._synth_busy)
         if error:
             msg = str(error)
             if len(msg) > 200:
@@ -885,14 +901,10 @@ class MainWindow(QtWidgets.QMainWindow):
                         take_fn(10)
                 except Exception:
                     pass
-        logger.debug(
-            "on_synthesize_finished busy flag %s -> False", self._synth_busy
-        )
+        logger.debug("on_synthesize_finished busy flag %s -> False", self._synth_busy)
         self._synth_busy = False
         self.update_synthesize_enabled()
-        logger.debug(
-            "on_synthesize_finished busy flag now %s", self._synth_busy
-        )
+        logger.debug("on_synthesize_finished busy flag now %s", self._synth_busy)
 
     def on_player_state_changed(self, state):
         if state == QMediaPlayer.StoppedState:
@@ -909,7 +921,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_position_label(self):
         pos = self.player.position()
         dur = self.player.duration()
-        self.duration_label.setText(f"{self._ms_to_mmss(pos)} / {self._ms_to_mmss(dur)}")
+        self.duration_label.setText(
+            f"{self._ms_to_mmss(pos)} / {self._ms_to_mmss(dur)}"
+        )
 
     def on_volume_changed(self, value: int):
         try:
@@ -927,7 +941,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_load_audio(self):
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Select Audio File", str(Path.home()), "Audio Files (*.wav *.mp3 *.flac);;All Files (*)"
+            self,
+            "Select Audio File",
+            str(Path.home()),
+            "Audio Files (*.wav *.mp3 *.flac);;All Files (*)",
         )
         if file_path:
             self.audio_file = file_path
@@ -941,7 +958,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_load_voice_prompt(self):
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Select Voice Prompt", str(Path.home()), "Audio Files (*.wav);;All Files (*)"
+            self,
+            "Select Voice Prompt",
+            str(Path.home()),
+            "Audio Files (*.wav);;All Files (*)",
         )
         if file_path:
             self.cb_voice_path = file_path
@@ -968,7 +988,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_backend_changed(self, backend: str):
         prev_backend = getattr(self, "_last_backend", None)
-        prev_features = BACKEND_FEATURES.get(prev_backend, set()) if prev_backend else set()
+        prev_features = (
+            BACKEND_FEATURES.get(prev_backend, set()) if prev_backend else set()
+        )
         if (
             hasattr(self.synth_button, "setVisible")
             and hasattr(self.transcribe_button, "setVisible")
@@ -991,15 +1013,28 @@ class MainWindow(QtWidgets.QMainWindow):
             self.lang_combo.setEnabled(False)
             self.rate_widget.setVisible(False)
             self.seed_widget.setVisible(False)
+            file_based = "file" in features
+            self.load_audio_button.setVisible(file_based)
+            self.text_edit.setVisible(not file_based)
+            if not file_based:
+                self.audio_file = None
+                self.load_audio_button.setText("Load Audio File")
+            self.chatterbox_opts.setVisible(backend == "chatterbox")
+            self.whisper_opts.setVisible(backend == "whisper")
+            self.transcript_group.setVisible(backend == "whisper")
+            self.update_synthesize_enabled()
+            self._last_backend = backend
             return
 
         import importlib
+
         importlib.invalidate_caches()
 
         # configure voice and language lists
         if backend == "pyttsx3":
             try:
                 import pyttsx3
+
                 engine = pyttsx3.init()
                 voices = engine.getProperty("voices")
             except Exception:
@@ -1039,6 +1074,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.lang_combo.setEnabled(False)
             elif backend == "chatterbox":
                 from ..backend import get_chatterbox_voices
+
                 voices = get_chatterbox_voices()
                 self.voice_combo.clear()
                 self.voice_combo.addItem("(none)", None)
@@ -1085,7 +1121,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_synthesize_enabled()
         self._last_backend = backend
 
-
     def _generate_output_path(self, text: str, backend: str) -> Path:
         date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         snippet = text[:15]
@@ -1115,6 +1150,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.status.setText(f"Install error: {error}")
         else:
             import importlib
+
             importlib.invalidate_caches()
             self.status.setText(f"{backend} installed")
         self.update_install_status()
@@ -1126,6 +1162,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         backend = self.backend_combo.currentText()
         from ..backend import backend_was_installed
+
         if backend_was_installed(backend):
             self.install_button.setEnabled(False)
             self.install_button.setText("Backend Installed")
@@ -1153,14 +1190,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 text = str(getattr(self.text_edit, "_stored_text", ""))
             text_present = bool(text.strip())
         busy = getattr(self, "_synth_busy", False)
-        logger.debug(
-            "synth_btn state text_present=%s, busy=%s", text_present, busy
-        )
+        logger.debug("synth_btn state text_present=%s, busy=%s", text_present, busy)
         if backend in TRANSCRIBERS:
             self.transcribe_button.setEnabled(text_present and not busy)
         else:
             self.synth_button.setEnabled(text_present and not busy)
-        self.process_button.setEnabled(text_present and not busy and backend in TOOL_BACKENDS)
+        self.process_button.setEnabled(
+            text_present and not busy and backend in TOOL_BACKENDS
+        )
 
     def on_text_changed(self):
         logger.debug("textChanged emitted")
@@ -1199,4 +1236,3 @@ class MainWindow(QtWidgets.QMainWindow):
             self.api_process.terminate()
             self.api_process.wait()
         super().closeEvent(event)
-
