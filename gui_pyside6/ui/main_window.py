@@ -1195,11 +1195,25 @@ class MainWindow(QtWidgets.QMainWindow):
             text = ""
             if hasattr(self.text_edit, "toPlainText"):
                 val = self.text_edit.toPlainText()
-                logger.debug("update_synthesize_enabled read text: %s", val)
+                str_val = "" if val is None else str(val)
+                logger.debug(
+                    "update_synthesize_enabled read text: %r (len=%d)",
+                    val,
+                    len(str_val),
+                )
                 if val is not None:
-                    text = str(val)
+                    text = str_val
             if not text.strip() and hasattr(self.text_edit, "_stored_text"):
-                text = str(getattr(self.text_edit, "_stored_text", ""))
+                stored = str(getattr(self.text_edit, "_stored_text", ""))
+                logger.debug(
+                    "update_synthesize_enabled using _stored_text: %r (len=%d)",
+                    stored,
+                    len(stored),
+                )
+                text = stored
+            logger.debug(
+                "update_synthesize_enabled final text length: %d", len(text)
+            )
             text_present = bool(text.strip())
         busy = getattr(self, "_synth_busy", False)
         logger.debug("synth_btn state text_present=%s, busy=%s", text_present, busy)
