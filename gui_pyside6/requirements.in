@@ -17,7 +17,8 @@ safetensors
 python-dotenv==1.0.0
 pillow==10.3.0
 pydantic==2.10.6
-accelerate>=0.33.0
+accelerate >=0.33.0
+huggingface-hub >= 0.30
 
 # Optional (platform specific)
 matplotlib
