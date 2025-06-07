@@ -207,8 +207,9 @@ class WaveformWidget(LabelBase):
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, torch_missing: bool = False):
         super().__init__()
+        self._torch_missing = torch_missing
         self.prefs = load_preferences()
         self.debug = bool(
             self.prefs.get("debug", False) or os.environ.get("HYBRID_TTS_DEBUG") == "1"
@@ -317,6 +318,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pref_button = QtWidgets.QPushButton("Preferences")
         safe_connect(self.pref_button.clicked, self.on_preferences)
         settings_layout.addWidget(self.pref_button)
+        self.torch_button = QtWidgets.QPushButton("Reinstall PyTorch")
+        safe_connect(self.torch_button.clicked, self.on_reinstall_torch)
+        settings_layout.addWidget(self.torch_button)
         self.tabs.addTab(settings_tab, "Settings")
 
         model_row.addWidget(self.tabs)
@@ -637,6 +641,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.on_backend_changed(self.backend_combo.currentText())
         self._last_backend = self.backend_combo.currentText()
         self.update_synthesize_enabled()
+
+        if self._torch_missing:
+            QtCore.QTimer.singleShot(0, self._prompt_install_torch)
 
     def on_synthesize(self):
         backend = self.backend_combo.currentText()
@@ -1276,3 +1283,44 @@ class MainWindow(QtWidgets.QMainWindow):
             self.api_process.terminate()
             self.api_process.wait()
         super().closeEvent(event)
+
+    def _prompt_install_torch(self):
+        box = QtWidgets.QMessageBox(self)
+        box.setWindowTitle("PyTorch not detected")
+        box.setText("PyTorch is required for GPU acceleration and fast inference.")
+        install_btn = box.addButton("Install PyTorch (recommended)", QtWidgets.QMessageBox.AcceptRole)
+        cpu_btn = box.addButton("Continue with CPU (slow)", QtWidgets.QMessageBox.RejectRole)
+        box.setDefaultButton(install_btn)
+        box.exec()
+        if box.clickedButton() == install_btn:
+            self._run_torch_installer()
+        else:
+            import gui_pyside6 as pkg
+
+            pkg.CPU_MODE = True
+
+    def _run_torch_installer(self):
+        script = Path(__file__).resolve().parent.parent / "install_torch.py"
+        self._synth_busy = True
+        self.update_synthesize_enabled()
+        if hasattr(self, "torch_button"):
+            self.torch_button.setEnabled(False)
+        self.status.setText("Installing PyTorch...")
+        QtWidgets.QApplication.processEvents()
+        try:
+            subprocess.run([sys.executable, str(script)], check=True)
+        except subprocess.CalledProcessError as e:
+            self.status.setText(f"Install failed: {e}")
+            self._synth_busy = False
+            if hasattr(self, "torch_button"):
+                self.torch_button.setEnabled(True)
+            self.update_synthesize_enabled()
+            return
+
+        self.status.setText("Restarting app")
+        QtWidgets.QApplication.processEvents()
+        python = sys.executable
+        os.execv(python, [python, "-m", "gui_pyside6.main"])
+
+    def on_reinstall_torch(self):
+        self._run_torch_installer()

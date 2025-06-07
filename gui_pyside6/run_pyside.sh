@@ -68,14 +68,6 @@ uv pip compile "$REQUIREMENTS_INPUT_FILE" -o "$REQUIREMENTS_LOCK_FILE" || { echo
 echo "Installing dependencies from lock file..."
 uv pip sync "$REQUIREMENTS_LOCK_FILE" || { echo "Dependency installation failed!"; exit 1; }
 
-# Conditional PyTorch install
-if [ "$UV_APP_DRY" = "0" ]; then
-    echo "Installing PyTorch..."
-    python install_torch.py || echo "WARNING: PyTorch install failed. App may lack GPU support."
-else
-    echo "[Dry Run] Skipped PyTorch installation"
-fi
-
 # Launch app
 echo "Starting application..."
 pushd "$SCRIPT_DIR/.." >/dev/null

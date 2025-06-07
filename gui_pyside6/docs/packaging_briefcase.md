@@ -20,4 +20,10 @@ Follow the steps below to create platform specific builds.
    briefcase package
    ```
 
-The packaged application should run `install_torch.py` the first time it starts (or include the correct PyTorch wheel in the bundle) so that the appropriate PyTorch build is installed for the user.
+On first launch the application attempts to import PyTorch. If it is missing and
+`UV_APP_DRY` is not set to `1`, the user will be prompted to install it. The
+download can be large (up to **2&nbsp;GB**) and may take several minutes. A
+matching NVIDIA CUDA runtime must be present for GPU acceleration; otherwise the
+app falls back to CPU mode. If CUDA is not detected or if `UV_APP_DRY=1` is
+specified the program runs in CPU mode.
+
