@@ -749,8 +749,12 @@ class MainWindow(QtWidgets.QMainWindow):
         lookup = TRANSCRIBERS if backend in TRANSCRIBERS else BACKENDS
         func = lookup[backend]
         print(f"[INFO] Synthesizing with {backend}...")
+        logger.debug(
+            "_start_backend_worker busy flag %s -> True", self._synth_busy
+        )
         self._synth_busy = True
         self.update_synthesize_enabled()
+        logger.debug("_start_backend_worker busy flag now %s", self._synth_busy)
         self.worker = SynthesizeWorker(func, text, output, kwargs)
         self.worker.finished.connect(self.on_synthesize_finished)
         self.worker.start()
@@ -812,6 +816,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def on_synthesize_finished(self, output: object, error: object, elapsed: float):
+        logger.debug(
+            "on_synthesize_finished called with busy=%s", self._synth_busy
+        )
         if error:
             msg = str(error)
             if len(msg) > 200:
@@ -878,8 +885,14 @@ class MainWindow(QtWidgets.QMainWindow):
                         take_fn(10)
                 except Exception:
                     pass
+        logger.debug(
+            "on_synthesize_finished busy flag %s -> False", self._synth_busy
+        )
         self._synth_busy = False
         self.update_synthesize_enabled()
+        logger.debug(
+            "on_synthesize_finished busy flag now %s", self._synth_busy
+        )
 
     def on_player_state_changed(self, state):
         if state == QMediaPlayer.StoppedState:
@@ -924,6 +937,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.player.setSource(QUrl.fromLocalFile(file_path))
 
             self.update_synthesize_enabled()
+            logger.debug("on_load_audio triggered update_synthesize_enabled")
 
     def on_load_voice_prompt(self):
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
