@@ -1195,14 +1195,17 @@ class MainWindow(QtWidgets.QMainWindow):
             text = ""
             if hasattr(self.text_edit, "toPlainText"):
                 val = self.text_edit.toPlainText()
-                str_val = "" if val is None else str(val)
+                try:
+                    log_len = len(val or "")
+                except TypeError:
+                    log_len = len(str(val or ""))
                 logger.debug(
                     "update_synthesize_enabled read text: %r (len=%d)",
                     val,
-                    len(str_val),
+                    log_len,
                 )
                 if val is not None:
-                    text = str_val
+                    text = str(val)
             if not text.strip() and hasattr(self.text_edit, "_stored_text"):
                 stored = str(getattr(self.text_edit, "_stored_text", ""))
                 logger.debug(
