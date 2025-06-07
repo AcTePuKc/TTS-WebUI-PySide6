@@ -1,3 +1,3 @@
-package = "kokoro"
+package = "kokoro-fastapi"
 repo_url = "https://github.com/hexgrad/kokoro"
 description = "Kokoro TTS with voice presets."
