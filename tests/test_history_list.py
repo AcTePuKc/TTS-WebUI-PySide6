@@ -344,14 +344,17 @@ def test_button_visibility_updates_by_backend(tmp_path):
 
     window = main_window.MainWindow()
     assert window.synth_button.isVisible()
+    assert not window.process_button.isVisible()
     assert not window.transcribe_button.isVisible()
 
     window.on_backend_changed('whisper')
     assert not window.synth_button.isVisible()
+    assert window.process_button.isVisible()
     assert window.transcribe_button.isVisible()
 
     window.on_backend_changed('pyttsx3')
     assert window.synth_button.isVisible()
+    assert not window.process_button.isVisible()
     assert not window.transcribe_button.isVisible()
     for m in list(sys.modules):
         if m.startswith('PySide6'):
