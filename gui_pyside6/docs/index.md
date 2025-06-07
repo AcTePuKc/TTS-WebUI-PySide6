@@ -86,7 +86,9 @@ On Windows, set the variable and then run the command:
   ```
 
 Logs are written to `~/.hybrid_tts/app.log` and can clarify problems with UI
-state, such as the **Synthesize** button remaining disabled.
+state, such as the **Synthesize** button remaining disabled. When debugging GUI
+state issues, enable this logging to see events like `textChanged` and the
+values captured by `_record_text`.
 
 ## Notes and Investigations
 
