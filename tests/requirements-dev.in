@@ -1,4 +1,7 @@
+# Test requirements for Hybrid PySide6 app
+# fastapi is needed for API server tests
 pytest
+fastapi
 httpx==0.24.1
 matplotlib
 numpy
