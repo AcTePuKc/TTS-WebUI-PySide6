@@ -130,3 +130,11 @@ Tests cover backend installation helpers and the API server.
 - `requirements.uv.toml` lists only base packages; optional backends are listed in `backend/backend_requirements.json`.
 - You may copy utility code from other folders but do **not** modify the legacy WebUI or React UI projects.
 
+## Updating Dependencies
+
+1. Edit `requirements.in` to add or update base packages.
+2. Run `uv pip compile requirements.in -o requirements.lock.txt` to regenerate the lock file.
+3. Commit **both** `requirements.in` and `requirements.lock.txt` so the lock file stays in sync.
+
+`install_torch.py` installs the appropriate PyTorch build separately after the lock file sync.
+
