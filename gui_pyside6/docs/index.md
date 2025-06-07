@@ -61,6 +61,15 @@ voice. They are stored under the Hugging Face cache directory, typically
 you want to load voices from a custom folder containing `.pt` files. The same
 path can be configured in **Edit → Preferences** under "Kokoro voice directory".
 
+### Enabling Kokoro Backend
+
+1. Select **Kokoro** from the backend list in the main window.
+2. Click **Install Backend** if prompted. This installs the `kokoro` package.
+3. Choose a voice from the dropdown. The first time a voice is used its model
+   file downloads automatically. If no voices appear, verify the
+   `KOKORO_VOICE_DIR` setting or that the Hugging Face cache contains voice
+   packs.
+
 ## Documentation Sections
 
 - [Getting Started](getting_started.md) (setup, running the app)
