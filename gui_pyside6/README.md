@@ -33,6 +33,13 @@ for the first time the file downloads from Hugging Face into the cache directory
 (`~/.cache/huggingface/hub` by default). Set `KOKORO_VOICE_DIR` to override the
 location where voice `.pt` files are loaded from.
 
+The optional **Kokoro-FastAPI** server isn't on PyPI. Install it directly from
+GitHub if you want to run the standalone service:
+
+```bash
+pip install "kokoro-fastapi @ git+https://github.com/remsky/Kokoro-FastAPI.git"
+```
+
 Backend packages are defined in `backend/backend_requirements.json`. Installation first checks if the app is running inside a virtual environment; if so, packages install there. Detection now also considers `VIRTUAL_ENV` or `CONDA_PREFIX` environment variables so Conda and other managers work. If no environment is active, packages install into a per-user environment at `~/.hybrid_tts/venv` (`C:\Users\USERNAME\.hybrid_tts\venv` on Windows).
 Metadata files under `backend/metadata/` record the primary package name and repository URL for each backend.
 
