@@ -10,7 +10,8 @@ This repository hosts three separate apps / UIs:
 
 - The Hybrid app is fully self-contained under `/gui_pyside6/`.
 - All Hybrid development, files, and dependencies must stay under `/gui_pyside6/`.
-- The top-level `/gui_pyside6/requirements.in`, `/gui_pyside6/requirements.lock.txt`, `/gui_pyside6/run_pyside6.bat`, `/gui_pyside6/run_pyside6.cs`,`/gui_pyside6/Dockerfile`, and other root-level files are legacy — are possible to be edited working on the Hybrid app.
+- The top-level `/gui_pyside6/requirements.in`, `/gui_pyside6/requirements.lock.txt`, `/gui_pyside6/run_pyside6.bat`, `/gui_pyside6/run_pyside6.cs`,`/gui_pyside6/Dockerfile`, — are possible to be edited working on the Hybrid app.
+- ANYTHING IN MAIN FOLDER IS FORBIDDEN TO EDIT and ONLY CAN BE TAKEN AS REFERENCE!
 - The `/react_ui/` folder is a separate React-based UI — do not copy, modify, or merge React UI code into Hybrid PySide6.
 - `gui_pyside6/requirements.uv.toml` lists only base packages.
 - Optional TTS backends are declared in `gui_pyside6/backend/backend_requirements.json` and installed lazily.
