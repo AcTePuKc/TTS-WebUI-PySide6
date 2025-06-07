@@ -28,6 +28,12 @@ installed there remain available between sessions.
 
 Optional TTS backends are installed on demand. Select a backend and click the **Install Backend** button if prompted.
 
+If you prefer to install the Kokoro backend manually ahead of time, run:
+
+```bash
+pip install kokoro
+```
+
 Kokoro voices are not bundled with the package. When you choose a Kokoro voice
 for the first time the file downloads from Hugging Face into the cache directory
 (`~/.cache/huggingface/hub` by default). Set `KOKORO_VOICE_DIR` to override the
