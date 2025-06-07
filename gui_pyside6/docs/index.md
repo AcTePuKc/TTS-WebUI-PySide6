@@ -49,6 +49,9 @@ See also:
 - Backends should be implemented under `/gui_pyside6/backend/`.
 - Optional backends listed in `backend/backend_requirements.json`.
 - Backend and UI-related changes should be documented in the appropriate `.md` files (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
+- Set `HYBRID_TTS_ALWAYS_ENABLE=1` in the environment to force the **Synthesize**,
+  **Transcribe**, and **Process** buttons to stay enabled regardless of input
+  state.
 
 ## Documentation Sections
 
