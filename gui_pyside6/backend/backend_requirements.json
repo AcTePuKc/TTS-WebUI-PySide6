@@ -29,7 +29,7 @@
     "vocos"
   ],
   "kokoro": [
-    "kokoro"
+    "kokoro-fastapi"
   ],
   "chatterbox": [
     "chatterbox-tts",
