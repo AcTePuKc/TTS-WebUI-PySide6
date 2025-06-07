@@ -895,12 +895,22 @@ class MainWindow(QtWidgets.QMainWindow):
             self.cb_voice_button.setText(Path(file_path).name)
 
     def on_tab_changed(self, index: int):
+        if index == 3:
+            self.backend_combo = None
+            if hasattr(self.install_button, "setVisible"):
+                self.install_button.setVisible(False)
+            return
+
         if index == 0:
             self.backend_combo = self.tts_combo
         elif index == 1:
             self.backend_combo = self.tools_combo
         else:
             self.backend_combo = self.exp_combo
+
+        if hasattr(self.install_button, "setVisible"):
+            self.install_button.setVisible(True)
+
         self.on_backend_changed(self.backend_combo.currentText())
 
     def on_backend_changed(self, backend: str):
