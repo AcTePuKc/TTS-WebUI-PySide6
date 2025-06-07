@@ -4,6 +4,8 @@ import sys
 import webbrowser
 from datetime import datetime
 import time
+import os
+import logging
 from typing import Optional
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtCore import QUrl
@@ -31,6 +33,8 @@ from ..utils.preferences import load_preferences, save_preferences
 from ..utils.timer import Timer
 from ..utils.waveform_plot import plot_waveform_as_image
 from .preferences import PreferencesDialog
+
+logger = logging.getLogger(__name__)
 
 OUTPUT_DIR = Path("outputs")
 MAX_TEXT_LENGTH = 1000
@@ -204,6 +208,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.prefs = load_preferences()
+        self.debug = bool(self.prefs.get("debug", False) or os.environ.get("HYBRID_TTS_DEBUG") == "1")
+        if self.debug:
+            logging.basicConfig(level=logging.DEBUG)
+        else:
+            logging.basicConfig(level=logging.INFO)
 
         self._translator = None
         lang_code = self.prefs.get("ui_lang")
@@ -1063,19 +1072,15 @@ class MainWindow(QtWidgets.QMainWindow):
             text = ""
             if hasattr(self.text_edit, "toPlainText"):
                 val = self.text_edit.toPlainText()
-                print(
-                    f"[DEBUG] update_synthesize_enabled read text: {val}",
-                    file=sys.__stdout__,
-                )
+                logger.debug("update_synthesize_enabled read text: %s", val)
                 if val is not None:
                     text = str(val)
             if not text.strip() and hasattr(self.text_edit, "_stored_text"):
                 text = str(getattr(self.text_edit, "_stored_text", ""))
             text_present = bool(text.strip())
         busy = getattr(self, "_synth_busy", False)
-        print(
-            f"[DEBUG] synth_btn state text_present={text_present}, busy={busy}",
-            file=sys.__stdout__,
+        logger.debug(
+            "synth_btn state text_present=%s, busy=%s", text_present, busy
         )
         if backend in TRANSCRIBERS:
             self.transcribe_button.setEnabled(text_present and not busy)
@@ -1083,7 +1088,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.synth_button.setEnabled(text_present and not busy)
 
     def on_text_changed(self):
-        print("[DEBUG] textChanged emitted", file=sys.__stdout__)
+        logger.debug("textChanged emitted")
         QtCore.QTimer.singleShot(0, self.update_synthesize_enabled)
 
     def on_preferences(self):
