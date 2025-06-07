@@ -138,3 +138,7 @@ Tests cover backend installation helpers and the API server.
 
 `install_torch.py` installs the appropriate PyTorch build separately after the lock file sync.
 
+
+## Packaging with Briefcase
+
+See [docs/packaging_briefcase.md](docs/packaging_briefcase.md) for instructions on creating packaged builds with BeeWare Briefcase.
