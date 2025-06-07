@@ -461,6 +461,11 @@ class MainWindow(QtWidgets.QMainWindow):
         safe_connect(self.synth_button.clicked, self.on_synthesize)
         buttons_row.addWidget(self.synth_button)
 
+        self.transcribe_button = QtWidgets.QPushButton("Transcribe")
+        self.transcribe_button.setVisible(False)
+        safe_connect(self.transcribe_button.clicked, self.on_transcribe)
+        buttons_row.addWidget(self.transcribe_button)
+
         self.open_button = QtWidgets.QPushButton("Open Output Folder")
         safe_connect(self.open_button.clicked, self.on_open_output)
         buttons_row.addWidget(self.open_button)
@@ -585,6 +590,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_synthesize(self):
         backend = self.backend_combo.currentText()
+        if backend in TRANSCRIBERS:
+            if hasattr(self.status, "setText"):
+                self.status.setText("Current backend is for transcription. Use the Transcribe button.")
+            self.update_synthesize_enabled()
+            return
+        self._run_backend(backend)
+
+    def on_transcribe(self):
+        backend = self.backend_combo.currentText()
+        if backend not in TRANSCRIBERS:
+            if hasattr(self.status, "setText"):
+                self.status.setText("Current backend is not a transcriber.")
+            self.update_synthesize_enabled()
+            return
+        self._run_backend(backend)
+
+    def _run_backend(self, backend: str):
         features = BACKEND_FEATURES.get(backend, set())
 
         if not is_backend_installed(backend):
@@ -875,8 +897,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def on_backend_changed(self, backend: str):
         prev_backend = getattr(self, "_last_backend", None)
         prev_features = BACKEND_FEATURES.get(prev_backend, set()) if prev_backend else set()
-        if hasattr(self.synth_button, "setText"):
-            self.synth_button.setText("Transcribe" if backend in TRANSCRIBERS else "Synthesize")
+        if hasattr(self.synth_button, "setVisible") and hasattr(self.transcribe_button, "setVisible"):
+            self.synth_button.setVisible(backend not in TRANSCRIBERS)
+            self.transcribe_button.setVisible(backend in TRANSCRIBERS)
         if hasattr(self.status, "setText"):
             self.status.setText(BACKEND_INFO.get(backend, ""))
         self.update_install_status()
@@ -1054,7 +1077,10 @@ class MainWindow(QtWidgets.QMainWindow):
             f"[DEBUG] synth_btn state text_present={text_present}, busy={busy}",
             file=sys.__stdout__,
         )
-        self.synth_button.setEnabled(text_present and not busy)
+        if backend in TRANSCRIBERS:
+            self.transcribe_button.setEnabled(text_present and not busy)
+        else:
+            self.synth_button.setEnabled(text_present and not busy)
 
     def on_text_changed(self):
         print("[DEBUG] textChanged emitted", file=sys.__stdout__)

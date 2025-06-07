@@ -67,13 +67,18 @@ qtwidgets_mod.QTabWidget = DummyQTabWidget
 qtwidgets_mod.QListWidget = DummyListWidget
 qtwidgets_mod.QListWidgetItem = Dummy
 class DummyPushButton:
-    def __init__(self, text='', *a, **k):
+    def __init__(self, text="", *a, **k):
         self._text = text
         self.clicked = DummySignal()
+        self.visible = True
     def setText(self, t):
         self._text = t
     def text(self):
         return self._text
+    def setVisible(self, v):
+        self.visible = v
+    def isVisible(self):
+        return self.visible
     def __getattr__(self, name):
         return lambda *a, **k: None
 
@@ -326,7 +331,7 @@ def test_whisper_does_not_leave_busy(tmp_path):
     sys.modules.update(saved)
 
 
-def test_button_label_updates_by_backend(tmp_path):
+def test_button_visibility_updates_by_backend(tmp_path):
     saved = _setup_pyside6_stubs()
     prefs.PREF_FILE = tmp_path / 'prefs.json'
     prefs.save_preferences({})
@@ -338,13 +343,16 @@ def test_button_label_updates_by_backend(tmp_path):
     main_window.is_backend_installed = lambda name: True
 
     window = main_window.MainWindow()
-    assert window.button.text() == "Synthesize"
+    assert window.synth_button.isVisible()
+    assert not window.transcribe_button.isVisible()
 
     window.on_backend_changed('whisper')
-    assert window.button.text() == "Transcribe"
+    assert not window.synth_button.isVisible()
+    assert window.transcribe_button.isVisible()
 
     window.on_backend_changed('pyttsx3')
-    assert window.button.text() == "Synthesize"
+    assert window.synth_button.isVisible()
+    assert not window.transcribe_button.isVisible()
     for m in list(sys.modules):
         if m.startswith('PySide6'):
             sys.modules.pop(m)
