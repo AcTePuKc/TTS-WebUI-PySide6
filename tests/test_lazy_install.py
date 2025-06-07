@@ -26,14 +26,14 @@ import importlib.metadata
 
 def test_install_called_when_missing():
     with mock.patch('importlib.metadata.distribution', side_effect=importlib.metadata.PackageNotFoundError):
-        with mock.patch('gui_pyside6.backend.install_package_in_venv') as install:
+        with mock.patch('gui_pyside6.backend._install_backend_packages') as install:
             ensure_backend_installed('pyttsx3')
             install.assert_called_once()
 
 
 def test_install_skipped_when_present():
     with mock.patch('importlib.metadata.distribution', return_value=object()):
-        with mock.patch('gui_pyside6.backend.install_package_in_venv') as install:
+        with mock.patch('gui_pyside6.backend._install_backend_packages') as install:
             ensure_backend_installed('pyttsx3')
             install.assert_not_called()
 
@@ -89,7 +89,7 @@ def test_install_logged_and_persisted(tmp_path):
          mock.patch('gui_pyside6.backend._INSTALL_LOG', log_file), \
          mock.patch('gui_pyside6.backend._get_backend_packages', return_value=['foo==1']), \
          mock.patch('importlib.metadata.distribution', side_effect=importlib.metadata.PackageNotFoundError), \
-         mock.patch('gui_pyside6.backend.install_package_in_venv') as install:
+         mock.patch('gui_pyside6.backend._install_backend_packages') as install:
         from gui_pyside6 import backend
         backend._INSTALLED_BACKENDS.clear()
         ensure_backend_installed('dummy')

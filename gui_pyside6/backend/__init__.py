@@ -10,10 +10,10 @@ from pathlib import Path
 
 
 from datetime import datetime
-from ..utils.install_utils import (
-    install_package_in_venv,
-    uninstall_package_from_venv,
-)
+from ..utils import install_utils
+from ..utils.install_utils import uninstall_package_from_venv
+import subprocess
+from shutil import which
 
 _METADATA_DIR = Path(__file__).with_name("metadata")
 _BACKEND_METADATA: dict[str, dict[str, str]] = {}
@@ -236,11 +236,59 @@ def missing_backend_packages(name: str) -> list[str]:
 def is_backend_installed(name: str) -> bool:
     return not missing_backend_packages(name)
 
+
+# ---------------- installation helpers -----------------
+
+# Backends that bundle PyTorch dependencies should be installed
+# without dependency resolution so that the app's existing torch
+# package is reused. These packages include:
+# bark, chatterbox-tts, vocos, kokoro, tortoise-tts
+
+_TORCH_BACKENDS = {"bark", "chatterbox", "vocos", "kokoro", "tortoise"}
+
+
+def _uv_available() -> bool:
+    """Return True if the ``uv`` command is available."""
+    return which("uv") is not None
+
+
+def _install_backend_packages(packages: list[str], *, no_deps: bool = False) -> None:
+    """Install the given packages into the appropriate Python environment."""
+    if isinstance(packages, str):
+        packages = [packages]
+
+    # Mirror logic from install_utils.install_package_in_venv
+    subprocess.run([sys.executable, "-m", "ensurepip", "--upgrade"], check=True)
+
+    in_venv = install_utils._is_venv_active()
+
+    if in_venv:
+        python_exe = sys.executable
+    else:
+        install_utils._ensure_venv()
+        python_exe = str(install_utils._venv_python())
+        site_dir = install_utils._venv_site_packages()
+        if str(site_dir) not in sys.path:
+            sys.path.insert(0, str(site_dir))
+
+    subprocess.run([str(python_exe), "-m", "ensurepip", "--upgrade"], check=True)
+
+    if _uv_available():
+        cmd = ["uv", "pip", "install", "-p", str(python_exe)]
+    else:
+        cmd = [str(python_exe), "-m", "pip", "install"]
+
+    if no_deps:
+        cmd.append("--no-deps")
+
+    subprocess.check_call(cmd + packages)
+
 def ensure_backend_installed(name: str) -> None:
     """Install packages required for the given backend if missing."""
     missing = missing_backend_packages(name)
     if missing:
-        install_package_in_venv(missing)
+        no_deps = name in _TORCH_BACKENDS
+        _install_backend_packages(missing, no_deps=no_deps)
         _log_action("install", name, missing)
         _INSTALLED_BACKENDS.add(name)
 
