@@ -46,3 +46,4 @@ Recent Kokoro releases were thought to rely on a `kokoro-fastapi` package. Voice
 ### Follow-up 6
 
 The attempted switch to `kokoro-fastapi` caused backend installation errors since that distribution does not exist on PyPI. The metadata and requirements now reference `kokoro` again while `missing_backend_packages()` accepts either name for compatibility.
+
