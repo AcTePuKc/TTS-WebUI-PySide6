@@ -14,8 +14,9 @@ All Hybrid app code, scripts and dependencies stay inside `/gui_pyside6/`. Do no
 
 1. Install **Python 3.11** and the [`uv`](https://github.com/astral-sh/uv) package.
 2. Run `run_pyside.sh` (Linux/macOS) or `run_pyside.bat` (Windows) from this directory.
-   The script creates a virtual environment, installs `requirements.uv.toml`,
-   optionally installs PyTorch, and launches the GUI from the repository root.
+   The script creates a virtual environment, compiles `requirements.in` into
+   `requirements.lock.txt`, installs packages from that lock file, optionally
+   installs PyTorch, and launches the GUI from the repository root.
 3. You can also start the GUI manually (from the repository root) with:
 
    ```bash
