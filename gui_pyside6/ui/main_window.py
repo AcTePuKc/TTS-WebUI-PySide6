@@ -358,14 +358,9 @@ class MainWindow(QtWidgets.QMainWindow):
             return val
 
         def _record_text():
-            QtCore.QTimer.singleShot(
-                0,
-                lambda: setattr(
-                    self.text_edit,
-                    "_stored_text",
-                    _orig_to_plain() if callable(_orig_to_plain) else "",
-                ),
-            )
+            val = _orig_to_plain() if callable(_orig_to_plain) else None
+            if val is not None:
+                self.text_edit._stored_text = str(val)
 
         self.text_edit.setPlainText = _set_plain
         self.text_edit.toPlainText = _to_plain
@@ -593,10 +588,13 @@ class MainWindow(QtWidgets.QMainWindow):
         features = BACKEND_FEATURES.get(backend, set())
 
         if not is_backend_installed(backend):
-            if hasattr(self.status, "setText"):
-                self.status.setText("Backend not installed. Click 'Install Backend' first.")
-            self.update_synthesize_enabled()
-            return
+            try:
+                ensure_backend_installed(backend)
+            except Exception as e:
+                if hasattr(self.status, "setText"):
+                    self.status.setText(f"Install failed: {e}")
+                self.update_synthesize_enabled()
+                return
 
         if "file" in features:
             if not self.audio_file or not Path(self.audio_file).is_file():
@@ -641,11 +639,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.update_synthesize_enabled()
             return
 
-        func = lookup[backend]
-        self._synth_busy = True
-        self.update_synthesize_enabled()
+        kwargs = self._build_backend_kwargs(backend, voice_id, lang_code, rate, seed)
+        self._start_backend_worker(backend, text, output, kwargs)
+
+    def _build_backend_kwargs(self, backend: str, voice: str | None, lang: str | None, rate: int, seed: int | None) -> dict:
         features = BACKEND_FEATURES.get(backend, set())
-        kwargs = {}
+        kwargs: dict = {}
         if "rate" in features:
             if backend == "edge_tts":
                 delta = rate - 200
@@ -655,18 +654,18 @@ class MainWindow(QtWidgets.QMainWindow):
         if backend == "chatterbox":
             if self.cb_voice_path:
                 kwargs["voice"] = self.cb_voice_path
-            elif voice_id:
-                kwargs["voice"] = voice_id
+            elif voice:
+                kwargs["voice"] = voice
             if hasattr(self.cb_exaggeration, "value"):
                 kwargs["exaggeration"] = self.cb_exaggeration.value()
             if hasattr(self.cb_cfg, "value"):
                 kwargs["cfg_weight"] = self.cb_cfg.value()
             if hasattr(self.cb_temp, "value"):
                 kwargs["temperature"] = self.cb_temp.value()
-        elif "voice" in features and voice_id:
-            kwargs["voice"] = voice_id
-        if "lang" in features and lang_code:
-            kwargs["lang"] = lang_code
+        elif "voice" in features and voice:
+            kwargs["voice"] = voice
+        if "lang" in features and lang:
+            kwargs["lang"] = lang
         if "seed" in features and seed is not None:
             kwargs["seed"] = seed
         if backend == "whisper":
@@ -674,8 +673,14 @@ class MainWindow(QtWidgets.QMainWindow):
             kwargs["model_name"] = _hf_whisper_model(model_name)
             if hasattr(self, "whisper_ts_checkbox") and self.whisper_ts_checkbox.isChecked():
                 kwargs["return_timestamps"] = True
+        return kwargs
 
+    def _start_backend_worker(self, backend: str, text: str, output: Path | None, kwargs: dict) -> None:
+        lookup = TRANSCRIBERS if backend in TRANSCRIBERS else BACKENDS
+        func = lookup[backend]
         print(f"[INFO] Synthesizing with {backend}...")
+        self._synth_busy = True
+        self.update_synthesize_enabled()
         self.worker = SynthesizeWorker(func, text, output, kwargs)
         self.worker.finished.connect(self.on_synthesize_finished)
         self.worker.start()
@@ -1039,18 +1044,17 @@ class MainWindow(QtWidgets.QMainWindow):
                     f"[DEBUG] update_synthesize_enabled read text: {val}",
                     file=sys.__stdout__,
                 )
-                if val is not None and val != "":
+                if val is not None:
                     text = str(val)
-            if text == "" and hasattr(self.text_edit, "_stored_text"):
+            if not text.strip() and hasattr(self.text_edit, "_stored_text"):
                 text = str(getattr(self.text_edit, "_stored_text", ""))
             text_present = bool(text.strip())
-        backend_ready = is_backend_installed(backend)
         busy = getattr(self, "_synth_busy", False)
         print(
-            f"[DEBUG] synth_btn state text_present={text_present}, backend_ready={backend_ready}, busy={busy}",
+            f"[DEBUG] synth_btn state text_present={text_present}, busy={busy}",
             file=sys.__stdout__,
         )
-        self.button.setEnabled(text_present and backend_ready and not busy)
+        self.button.setEnabled(text_present and not busy)
 
     def on_text_changed(self):
         print("[DEBUG] textChanged emitted", file=sys.__stdout__)
