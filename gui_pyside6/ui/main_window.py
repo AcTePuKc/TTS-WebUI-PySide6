@@ -358,9 +358,14 @@ class MainWindow(QtWidgets.QMainWindow):
             return val
 
         def _record_text():
-            val = _orig_to_plain() if callable(_orig_to_plain) else None
-            if val is not None:
-                self.text_edit._stored_text = str(val)
+            QtCore.QTimer.singleShot(
+                0,
+                lambda: setattr(
+                    self.text_edit,
+                    "_stored_text",
+                    _orig_to_plain() if callable(_orig_to_plain) else "",
+                ),
+            )
 
         self.text_edit.setPlainText = _set_plain
         self.text_edit.toPlainText = _to_plain
@@ -1034,9 +1039,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     f"[DEBUG] update_synthesize_enabled read text: {val}",
                     file=sys.__stdout__,
                 )
-                if val is not None:
+                if val is not None and val != "":
                     text = str(val)
-            if not text.strip() and hasattr(self.text_edit, "_stored_text"):
+            if text == "" and hasattr(self.text_edit, "_stored_text"):
                 text = str(getattr(self.text_edit, "_stored_text", ""))
             text_present = bool(text.strip())
         backend_ready = is_backend_installed(backend)
