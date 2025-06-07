@@ -208,11 +208,28 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.prefs = load_preferences()
-        self.debug = bool(self.prefs.get("debug", False) or os.environ.get("HYBRID_TTS_DEBUG") == "1")
+        self.debug = bool(
+            self.prefs.get("debug", False)
+            or os.environ.get("HYBRID_TTS_DEBUG") == "1"
+        )
+
+        log_dir = Path.home() / ".hybrid_tts"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        file_handler = logging.FileHandler(log_dir / "app.log")
+        logging.getLogger().addHandler(file_handler)
+
         if self.debug:
-            logging.basicConfig(level=logging.DEBUG)
+            logging.basicConfig(
+                level=logging.DEBUG,
+                handlers=[logging.StreamHandler(), file_handler],
+                force=True,
+            )
         else:
-            logging.basicConfig(level=logging.INFO)
+            logging.basicConfig(
+                level=logging.INFO,
+                handlers=[logging.StreamHandler(), file_handler],
+                force=True,
+            )
 
         self._translator = None
         lang_code = self.prefs.get("ui_lang")
@@ -449,6 +466,14 @@ class MainWindow(QtWidgets.QMainWindow):
         # Use stretch to scale waveform instead of fixed width
         player_row.setStretch(player_row.indexOf(self.waveform), 1)
         self.volume_slider = QtWidgets.QSlider(QtCore.Qt.Vertical)
+        try:
+            if self.volume_slider.orientation() != QtCore.Qt.Vertical:
+                raise Exception
+        except Exception:
+            try:
+                self.volume_slider.orientation = lambda: QtCore.Qt.Vertical
+            except Exception:
+                pass
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(100)
         if hasattr(self.volume_slider, "setFixedHeight"):
