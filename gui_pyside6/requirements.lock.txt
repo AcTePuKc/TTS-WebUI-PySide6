@@ -39,7 +39,9 @@ fsspec==2025.5.1
 h11==0.16.0
     # via uvicorn
 huggingface-hub==0.32.4
-    # via accelerate
+    # via
+    #   -r requirements.in
+    #   accelerate
 idna==3.10
     # via
     #   anyio
@@ -105,8 +107,6 @@ safetensors==0.5.3
     # via
     #   -r requirements.in
     #   accelerate
-setuptools==80.9.0
-    # via torch
 shiboken6==6.9.1
     # via
     #   pyside6
@@ -133,6 +133,7 @@ tqdm==4.67.1
     # via huggingface-hub
 typing-extensions==4.14.0
     # via
+    #   anyio
     #   fastapi
     #   huggingface-hub
     #   pydantic
